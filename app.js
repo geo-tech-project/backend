@@ -31,6 +31,10 @@ app.get('/', (req, res, next) => {
     res.send('yup')
 })
 
+app.get('/image/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
+})
+
 app.post('/start', (req, res, next) => {
     var jsonData = {
         aoi: {
