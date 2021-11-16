@@ -1,8 +1,8 @@
 const express = require('express');
 const path = require('path');
-const cors = require('cors');
 const multer = require('multer');
 const bodyParser = require('body-parser');
+var R = require("r-script");
 
 const PORT = process.env.PORT || 3000;
 
@@ -26,9 +26,21 @@ app.use(express.urlencoded({
     extended: true
 }));
 
-app.get('/', (req, res, next) => {
-    console.log('get /')
-    res.send('yup')
+bla = {
+    "topright": {
+        "lat": 7.484584,
+        "lon": 46.5487
+    }
+}
+
+app.get('/test', (req, res, next) => {
+    console.log('get /test')
+    var out = R("./public/test.R")
+        .data(bla)
+        .callSync();
+
+    console.log(out);
+    res.send(out)
 })
 
 app.get('/image/:name', (req, res, next) => {
