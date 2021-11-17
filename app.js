@@ -4,6 +4,8 @@ const cors = require('cors');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 
+const {getStacLinks} = require('./stacApiRequest');
+
 const PORT = process.env.PORT || 3000;
 
 // storage for multer upload
@@ -31,6 +33,9 @@ app.get('/', (req, res, next) => {
     res.send('yup')
 })
 
+app.get('/stac',(req,res,next) => {
+    
+});
 app.get('/image/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
