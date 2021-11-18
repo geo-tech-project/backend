@@ -34,7 +34,7 @@ app.get('/', (req, res, next) => {
 })
 
 app.get('/stac',(req,res,next) => {
-    
+
 });
 app.get('/image/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
