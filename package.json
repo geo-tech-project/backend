@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "multer": "^1.4.3",
     "ng2-file-upload": "^1.4.0",
+    "r-integration": "^1.2.0",
     "r-script": "0.0.4"
   }
 }

@@ -1,8 +1,8 @@
 const express = require('express');
 const path = require('path');
 const multer = require('multer');
-const bodyParser = require('body-parser');
-var R = require("r-script");
+var cors = require('cors');
+const R = require('r-integration');
 
 const PORT = process.env.PORT || 3000;
 
@@ -25,29 +25,15 @@ app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
+app.use(cors());
 
-bla = {
-    "topright": {
-        "lat": 7.484584,
-        "lon": 46.5487
-    }
-}
 
-app.get('/test', (req, res, next) => {
-    console.log('get /test')
-    var out = R("./public/test.R")
-        .data(bla)
-        .callSync();
-
-    console.log(out);
-    res.send(out)
-})
-
-app.get('/image/:name', (req, res, next) => {
+// route to return uploaded file
+app.get('/file/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
 
-app.post('/start', (req, res, next) => {
+app.post('/calculateaoi', (req, res, next) => {
     var jsonData = {
         aoi: {
             topleft: {
@@ -73,9 +59,19 @@ app.post('/start', (req, res, next) => {
         filename: req.body.filename
     }
     console.log(jsonData);
-    res.send(jsonData);
+    console.log("calculating aoi...");
+    callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
+        console.log(result);
+        res.send(result);
+    }).catch((error) => {
+        console.error(error);
+        res.send(error);
+    })
+    //res.send(jsonData);
 })
 
+
+// route to upload file only for multer
 app.post('/upload', upload.single('file'), function (req, res) {
     if (!req.file) {
         console.log("No file is available!");
