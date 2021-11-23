@@ -8,6 +8,11 @@ koeln_shape = read_sf("trainingsdaten_koeln_25832.gpkg")
 tmap_options(check.and.fix = TRUE)
 tm_shape(st_geometry(koeln_shape)) +  tm_polygons()
 st_crs(koeln_shape)
+nl_shape = read_sf("NL.gpkg")
+nl_shape$geom
+koeln_shape$geom
+koeln_shape_simple <- st_simplify(koeln_shape)
+
 
 library(mapview)
 mapview(koeln_shape)
@@ -62,4 +67,7 @@ gdalcubes_options(threads = 16)
 S2.mask = image_mask("SCL", values = c(3,8,9))
 sentinel<- raster_cube(s2_collection, v.bbox.overview, S2.mask) |>
     select_bands(c("B02", "B03", "B04")) |>
+    #filter_geom(koeln_shape_simple$geom) |>
     plot(rgb = 3:1, zlim=c(0,1500))
+
+?raster_cube
