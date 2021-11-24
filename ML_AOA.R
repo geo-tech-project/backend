@@ -75,7 +75,7 @@ AOA <- aoa(sen_ms,model,cl=cl)
 
 print(typeof(AOA))
 
-writeRaster(AOA, "./public/stack/AOA_MS.grd", overwrite=TRUE)
+writeRaster(AOA, "./public/stack/AOA_MS.tif", overwrite=TRUE)
 
 return('done')
 }
