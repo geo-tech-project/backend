@@ -33,6 +33,11 @@ app.get('/file/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
 
+// route to return uploaded file
+app.get('/stack/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './public/stack/', req.params.name));
+})
+
 app.post('/calculateaoi', (req, res, next) => {
     var jsonData = {
         aoi: {
