@@ -27,6 +27,9 @@ app.use(express.urlencoded({
 }));
 app.use(cors());
 
+app.get("/test", (req, res, next) => {
+    res.send("yup");
+})
 
 // route to return uploaded file
 app.get('/file/:name', (req, res, next) => {
