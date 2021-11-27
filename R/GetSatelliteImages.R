@@ -47,6 +47,18 @@ bboxToWGS84 <- function(bbox){
   return(bbox_WGS84)
 } 
 
+numberOfDaysFromPeriod <- function(datetime) {
+  date1 <- substr(datetime,12,21)
+  date1 <- gsub(pattern = "-", replacement = "/",date1, fixed = TRUE)
+  date2 <- substr(datetime,0,10)
+  date2 <- gsub(pattern = "-", replacement = "/",date2, fixed = TRUE)
+  survey <- data.frame(date=date1, tx_start=date2)
+  survey$date_diff <- as.Date(as.character(survey$date), format="%Y/%m/%d")-
+    as.Date(as.character(survey$tx_start), format="%Y/%m/%d")
+  survey$date_diff<-as.numeric(survey$date_diff)
+  return(survey$date_diff)
+}
+
 createImageColletion <- function(desiredBands, cloudCoverageInPercentage){
   library(gdalcubes)
   s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
@@ -56,7 +68,9 @@ createCubeView <- function(bbox, resolution, datetime){
   bboxWGS84 = bboxToWGS84(bbox)
   lon = bboxWGS84["xmin"]
   crs = epsgCodeFromUTMzone(getUTMZone(lon))
-  v.bbox.overview = cube_view(srs= crs,  dx=resolution, dy=resolution, dt="P30D", 
+  days = numberOfDaysFromPeriod(datetime) +1
+  daysString = paste("P",days,"D",sep = "")
+  v.bbox.overview = cube_view(srs= crs,  dx=resolution, dy=resolution, dt= daysString, 
                               aggregation="median", resampling = "average",
                               extent=list(t0 = substr(datetime,0,10), t1 = substr(datetime,12,21),
                                           left=bbox["xmin"] - 1000, right=bbox["xmax"] + 1000,
@@ -73,7 +87,7 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
   write_tif(
     sentinel,
     dir = "~/GitHub/backend/R",
-    prefix = "",
+    prefix = "1",
     overviews = FALSE,
     COG = TRUE,
     rsmpl_overview = "nearest",
@@ -84,6 +98,7 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
 }
 
 generateSatelliteImageFromTrainingData <- function(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
+  library(future)
   # Set BBOX to bbox of the shape from the training data
   bbox = st_bbox(trainingData)
   # Querying images with rstac
@@ -99,6 +114,7 @@ generateSatelliteImageFromTrainingData <- function(trainingData, datetime, limit
   gdalcubes_options(threads = 16)
   createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 }
+
 
 ################################################################################
 ################################################################################
@@ -117,14 +133,31 @@ setwd("~/GitHub/backend/R")
 
 #Set variables
 library(sf)
-trainingData = read_sf("trainingsdaten_koeln_25832.gpkg") #trainingdata should be located in the R folder of the backend
-datetime = "2021-06-01/2021-06-30"
-limit = 500
-desiredBands = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
-resolution = 200
-cloudCoverageInPercentage = 10
+trainingData = read_sf("trainingsdaten_kenia_21097.gpkg") #trainingdata should be located in the R folder of the backend
+datetime = "2019-06-01/2021-06-30"
+limit = 100
+desiredBands = c("B02","B03","B04","SCL")
+resolution = 10
+cloudCoverageInPercentage = 20
 
-generateSatelliteImageFromTrainingData(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+#Set BBOX to bbox of the shape from the training data
+bbox = st_bbox(trainingData)
+# Querying images with rstac
+items = stacRequest(bbox, datetime, limit)
+items
+# Creating an image collection
+imageCollection = createImageColletion(desiredBands, cloudCoverageInPercentage)
+imageCollection
+# Creating the cube view
+cubeView = createCubeView(bbox, resolution, datetime)
+cubeView
+# Parallel computing?
+gdalcubes_options(threads = 16)
+createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
+
+
+
+#generateSatelliteImageFromTrainingData(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 
 # Load tif file to proof if everything is correct
 library(raster)
