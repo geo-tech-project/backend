@@ -13,3 +13,6 @@ epsgCodeFromUTMzone <- function(utmZone){
   }
   return(paste("EPSG:326",string, sep=""))
 }
+
+
+epsgCodeFromUTMzone(30)
