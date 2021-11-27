@@ -1,15 +1,25 @@
-library(sf)
-getwd()
+# Remove all variables from current environment
+rm(list=ls())
 
-#Set working directory to source file location
-getwd()
-#setwd("C:/Users/thali/OneDrive/Dokumente/WWU/6. Semester/Geosoftware 1/GitHub/backend")
 
+# First set your working directory to your github folder
+setwd("~/GitHub/backend/R")
+getwd()
+list.files()
+
+# Load tmap for visualization
 library(tmap)
 tmap_mode("view")
+
+# Upload your training data (trainingdata should be located in the R folder of the backend)
+library(sf)
 koeln_shape = read_sf("trainingsdaten_koeln_25832.gpkg")
+
+# Visualize the training data with tmap
 tmap_options(check.and.fix = TRUE)
 tm_shape(st_geometry(koeln_shape)) +  tm_polygons()
+
+
 #st_crs(koeln_shape)
 #nl_shape = read_sf("NL.gpkg")
 #nl_shape$geom
@@ -100,6 +110,8 @@ names(sentinel_stack) <- c("B01", "B02", "B03", "B04",
 plot(sentinel_stack)
 writeRaster(sentinel_stack,"predictors_koeln.grd")
 
+library(raster)
+getwd()
 sentinel_stack <- stack("predictors_koeln.grd")
 
 
@@ -127,7 +139,15 @@ mapview(sentinel_stack_WGS84)
 test <- raster("test.tif")
 crs(test)
 plot(test)
-test_WGS84 <- projectRaster(test,crs= proj )
+sentinel_stack_WGS84 <- projectRaster(sentinel_stack,crs= proj)
+
 ?projectRaster
+
 crs(test_WGS84)
+
 proj <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs "
+sentinel_stack_WGS84 <- projectRaster(sentinel_stack,crs= proj)
+
+sentinel_stack
+sentinel_stack_WGS84
+plot(sentinel_stack_WGS84)
