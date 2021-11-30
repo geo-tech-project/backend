@@ -59,7 +59,7 @@ numberOfDaysFromPeriod <- function(datetime) {
   return(survey$date_diff)
 }
 
-createImageColletion <- function(desiredBands, cloudCoverageInPercentage){
+createImageColletion <- function(desiredBands, cloudCoverageInPercentage, items){
   library(gdalcubes)
   s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
 }
@@ -87,7 +87,27 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
   write_tif(
     sentinel,
     dir = "~/GitHub/backend/R",
-    prefix = "1",
+    prefix = "",
+    overviews = FALSE,
+    COG = TRUE,
+    rsmpl_overview = "nearest",
+    creation_options = NULL,
+    write_json_descr = FALSE,
+    pack = NULL
+  )
+}
+
+#####NOT READY YET
+createTifFileFromAOI <- function(imageCollection, cubeView, AOI){
+  bbox <- 
+  # Set mask for further cloud filtering
+  S2.mask = image_mask("SCL", values = c(3,8,9))
+  # Create raster cube
+  sentinel <- raster_cube(imageCollection, cubeView, S2.mask)
+  write_tif(
+    sentinel,
+    dir = "~/GitHub/backend/R",
+    prefix = "",
     overviews = FALSE,
     COG = TRUE,
     rsmpl_overview = "nearest",
@@ -99,23 +119,33 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
 
 generateSatelliteImageFromTrainingData <- function(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
   library(future)
+  # Transform training data to the same CRS we use to create the cube view, so that every geometry alligns to each other
+  trainingData <- transformTrainingDataToEPSGFromCube(trainingData)
   # Set BBOX to bbox of the shape from the training data
   bbox = st_bbox(trainingData)
   # Querying images with rstac
-  items = stacRequest(bbox, datetime, limit)
-  items
+  items = future({stacRequest(bbox, datetime, limit)}) %plan% multiprocess
+  items_ready <- value(items)
   # Creating an image collection
-  imageCollection = createImageColletion(desiredBands, cloudCoverageInPercentage)
-  imageCollection
+  imageCollection =  future({createImageColletion(desiredBands, cloudCoverageInPercentage, items_ready)}) %plan% multiprocess
+  imageCollection_ready <- value(imageCollection)
   # Creating the cube view
-  cubeView = createCubeView(bbox, resolution, datetime)
-  cubeView
+  cubeView = future({createCubeView(bbox, resolution, datetime)}) %plan% multiprocess
+  cubeView_ready <- value(cubeView)
   # Parallel computing?
   gdalcubes_options(threads = 16)
-  createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
+  createTifFileFromTrainingData(imageCollection_ready, cubeView_ready, trainingData)
 }
 
-
+transformTrainingDataToEPSGFromCube <- function(trainingData) {
+  bbox = st_bbox(trainingData)
+  bboxWGS84 = bboxToWGS84(bbox)
+  lon = bboxWGS84["xmin"]
+  crs = epsgCodeFromUTMzone(getUTMZone(lon))
+  library(sf)
+  trainingData <- st_transform(trainingData, crs)
+  return (trainingData)
+}
 ################################################################################
 ################################################################################
 
@@ -133,20 +163,25 @@ setwd("~/GitHub/backend/R")
 
 #Set variables
 library(sf)
-trainingData = read_sf("trainingsdaten_kenia_21097.gpkg") #trainingdata should be located in the R folder of the backend
+trainingData = read_sf("trainingsdaten_kenia_4_4326.gpkg") #trainingdata should be located in the R folder of the backend
 datetime = "2019-06-01/2021-06-30"
 limit = 100
 desiredBands = c("B02","B03","B04","SCL")
-resolution = 10
+resolution = 400
 cloudCoverageInPercentage = 20
+
+# Transform training data to the same CRS we use to create the cube view, so that every geometry alligns to each other
+trainingData <- transformTrainingDataToEPSGFromCube(trainingData)
 
 #Set BBOX to bbox of the shape from the training data
 bbox = st_bbox(trainingData)
+bbox
+
 # Querying images with rstac
 items = stacRequest(bbox, datetime, limit)
 items
 # Creating an image collection
-imageCollection = createImageColletion(desiredBands, cloudCoverageInPercentage)
+imageCollection = createImageColletion(desiredBands, cloudCoverageInPercentage, items)
 imageCollection
 # Creating the cube view
 cubeView = createCubeView(bbox, resolution, datetime)
@@ -157,10 +192,11 @@ createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 
 
 
-#generateSatelliteImageFromTrainingData(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+generateSatelliteImageFromTrainingData(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 
 # Load tif file to proof if everything is correct
 library(raster)
-sentinel <- stack("2021-06-01.tif")
+sentinel <- stack("2019-06-01.tif")
 sentinel
 plotRGB(sentinel, r=3, g=2, b=1, stretch = "lin")
+
