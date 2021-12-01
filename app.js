@@ -4,7 +4,7 @@ const cors = require('cors');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 
-const {getStacLinks} = require('./stacApiRequest');
+//const {getStacLinks} = require('./stacApiRequest');
 
 const PORT = process.env.PORT || 3000;
 

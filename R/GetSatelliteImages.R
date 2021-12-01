@@ -1,6 +1,6 @@
 # Remove all variables from current environment
 rm(list=ls())
-
+#library(gdalcubes)
 ################################################################################
 ################################################################################
 
@@ -21,6 +21,11 @@ epsgCodeFromUTMzone <- function(utmZone){
   return(paste("EPSG:326",string, sep=""))
 }
 
+getEPSG <- function(longitude){
+  zone <- getUTMZone(longitude)
+  epsg <- epsgCodeFromUTMzone(zone)
+  return(epsg)
+}
 # Function to get items from stac
 # parameters: - bbox of area of interest
 #             - date period as string (example: "2021-06-01/2021-06-30")
@@ -41,6 +46,7 @@ stacRequest <- function(bbox, datetime, limit) {
 
 # Function to transform a bbox of any crs to a bbox with a WGS84 crs
 bboxToWGS84 <- function(bbox){
+  library(sf)
   st_as_sfc(bbox) |>
     st_transform("EPSG:4326") |>
     st_bbox() -> bbox_WGS84
@@ -62,6 +68,7 @@ numberOfDaysFromPeriod <- function(datetime) {
 createImageColletion <- function(desiredBands, cloudCoverageInPercentage, items){
   library(gdalcubes)
   s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
+  return(s2_collection)
 }
 
 createCubeView <- function(bbox, resolution, datetime){
@@ -117,24 +124,30 @@ createTifFileFromAOI <- function(imageCollection, cubeView, AOI){
   )
 }
 
-generateSatelliteImageFromTrainingData <- function(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
-  library(future)
+
+
+generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
+  library(sf)
+  trainingData <- read_sf(trainingDataPath)
   # Transform training data to the same CRS we use to create the cube view, so that every geometry alligns to each other
   trainingData <- transformTrainingDataToEPSGFromCube(trainingData)
   # Set BBOX to bbox of the shape from the training data
   bbox = st_bbox(trainingData)
   # Querying images with rstac
-  items = future({stacRequest(bbox, datetime, limit)}) %plan% multiprocess
-  items_ready <- value(items)
+  items = stacRequest(bbox, datetime, limit)
   # Creating an image collection
-  imageCollection =  future({createImageColletion(desiredBands, cloudCoverageInPercentage, items_ready)}) %plan% multiprocess
-  imageCollection_ready <- value(imageCollection)
+  # print(desiredBands)
+  desiredBands <- unlist(strsplit(desiredBands,','))
+  # desiredBands <- c(desiredBands)
+  # print(desiredBands)
+  # print(bands)
+  1+
+  imageCollection =  createImageColletion(desiredBands, cloudCoverageInPercentage, items)
   # Creating the cube view
-  cubeView = future({createCubeView(bbox, resolution, datetime)}) %plan% multiprocess
-  cubeView_ready <- value(cubeView)
+  cubeView = createCubeView(bbox, resolution, datetime)
   # Parallel computing?
   gdalcubes_options(threads = 16)
-  createTifFileFromTrainingData(imageCollection_ready, cubeView_ready, trainingData)
+  createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 }
 
 transformTrainingDataToEPSGFromCube <- function(trainingData) {
@@ -142,15 +155,21 @@ transformTrainingDataToEPSGFromCube <- function(trainingData) {
   bboxWGS84 = bboxToWGS84(bbox)
   lon = bboxWGS84["xmin"]
   crs = epsgCodeFromUTMzone(getUTMZone(lon))
-  library(sf)
   trainingData <- st_transform(trainingData, crs)
   return (trainingData)
+}
+
+plotTifFile <- function(filePath){
+  library(raster)
+  sentinel <- stack(filePath)
+  sentinel
+  plotRGB(sentinel, r=3, g=2, b=1, stretch = "lin")
 }
 ################################################################################
 ################################################################################
 
 # First set your working directory to your github folder
-setwd("~/GitHub/backend/R")
+#setwd("~/GitHub/backend/R")
 
 # Load tmap for visualization
 #library(tmap)
@@ -162,41 +181,42 @@ setwd("~/GitHub/backend/R")
 
 
 #Set variables
-library(sf)
-trainingData = read_sf("trainingsdaten_kenia_4_4326.gpkg") #trainingdata should be located in the R folder of the backend
-datetime = "2019-06-01/2021-06-30"
-limit = 100
-desiredBands = c("B02","B03","B04","SCL")
-resolution = 400
-cloudCoverageInPercentage = 20
+#library(sf)
+# trainingData = "./Trainingsdaten/trainingsdaten_kenia_2_4326.gpkg" #trainingdata should be located in the R folder of the backend
+#datetime = "2021-06-01/2021-06-30"
+#limit = 100
+#desiredBands = c("B02","B03","B04","SCL")
+#resolution = 400
+#cloudCoverageInPercentage = 99
 
 # Transform training data to the same CRS we use to create the cube view, so that every geometry alligns to each other
-trainingData <- transformTrainingDataToEPSGFromCube(trainingData)
+#trainingData <- transformTrainingDataToEPSGFromCube(trainingData)
 
 #Set BBOX to bbox of the shape from the training data
-bbox = st_bbox(trainingData)
-bbox
+#bbox = st_bbox(trainingData)
+#bbox
 
 # Querying images with rstac
-items = stacRequest(bbox, datetime, limit)
-items
+#items = stacRequest(bbox, datetime, limit)
+#items
 # Creating an image collection
-imageCollection = createImageColletion(desiredBands, cloudCoverageInPercentage, items)
-imageCollection
+#imageCollection = createImageColletion(desiredBands, cloudCoverageInPercentage, items)
+#imageCollection
 # Creating the cube view
-cubeView = createCubeView(bbox, resolution, datetime)
-cubeView
+#cubeView = createCubeView(bbox, resolution, datetime)
+#cubeView
 # Parallel computing?
-gdalcubes_options(threads = 16)
-createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
+#library(gdalcubes)
+#gdalcubes_options(threads = 16)
+#createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 
 
 
-generateSatelliteImageFromTrainingData(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+#generateSatelliteImageFromTrainingData(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 
 # Load tif file to proof if everything is correct
-library(raster)
-sentinel <- stack("2019-06-01.tif")
-sentinel
-plotRGB(sentinel, r=3, g=2, b=1, stretch = "lin")
+# library(raster)
+# sentinel <- stack("./2021-06-01.tif")
+# sentinel
+# plotRGB(sentinel, r=3, g=2, b=1, stretch = "lin")
 
