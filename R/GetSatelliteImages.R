@@ -44,6 +44,24 @@ stacRequest <- function(bbox, datetime, limit) {
   return(items)
 }
 
+# Function to get items from stac
+# parameters: - bbox of area of interest
+#             - date period as string (example: "2021-06-01/2021-06-30")
+#             - limit -> maximum count of items
+stacRequestAOI <- function(bbox, datetime, limit) {
+  library(rstac)
+  s = stac("https://earth-search.aws.element84.com/v0")
+  # bbox = bboxToWGS84(bbox)
+  items = s |>
+    stac_search(collections = "sentinel-s2-l2a-cogs",
+                bbox = c(bbox["xmin"],bbox["ymin"],
+                         bbox["xmax"],bbox["ymax"]), 
+                datetime = datetime,
+                limit = limit) |>
+    post_request()
+  return(items)
+}
+
 # Function to transform a bbox of any crs to a bbox with a WGS84 crs
 bboxToWGS84 <- function(bbox){
   library(sf)
@@ -84,6 +102,18 @@ createCubeView <- function(bbox, resolution, datetime){
                                           top=bbox["ymax"] + 1000, bottom=bbox["ymin"] - 1000))
   return (v.bbox.overview)
 }
+createCubeViewAOI <- function(bbox, resolution, datetime){
+  lon = bbox["xmin"]
+  crs = epsgCodeFromUTMzone(getUTMZone(lon))
+  days = numberOfDaysFromPeriod(datetime) +1
+  daysString = paste("P",days,"D",sep = "")
+  v.bbox.overview = cube_view(srs= crs,  dx=resolution, dy=resolution, dt= daysString, 
+                              aggregation="median", resampling = "average",
+                              extent=list(t0 = substr(datetime,0,10), t1 = substr(datetime,12,21),
+                                          left=bbox["xmin"] - 1000, right=bbox["xmax"] + 1000,
+                                          top=bbox["ymax"] + 1000, bottom=bbox["ymin"] - 1000))
+  return (v.bbox.overview)
+}
 
 createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingData){
   # Set mask for further cloud filtering
@@ -91,26 +121,6 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
   # Create raster cube
   sentinel <- raster_cube(imageCollection, cubeView, S2.mask) |>
     filter_geom(trainingData$geom)
-  write_tif(
-    sentinel,
-    dir = "~/GitHub/backend/R",
-    prefix = "",
-    overviews = FALSE,
-    COG = TRUE,
-    rsmpl_overview = "nearest",
-    creation_options = NULL,
-    write_json_descr = FALSE,
-    pack = NULL
-  )
-}
-
-#####NOT READY YET
-createTifFileFromAOI <- function(imageCollection, cubeView, AOI){
-  bbox <- 
-  # Set mask for further cloud filtering
-  S2.mask = image_mask("SCL", values = c(3,8,9))
-  # Create raster cube
-  sentinel <- raster_cube(imageCollection, cubeView, S2.mask)
   write_tif(
     sentinel,
     dir = "~/GitHub/backend/R",
@@ -141,7 +151,6 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   # desiredBands <- c(desiredBands)
   # print(desiredBands)
   # print(bands)
-  1+
   imageCollection =  createImageColletion(desiredBands, cloudCoverageInPercentage, items)
   # Creating the cube view
   cubeView = createCubeView(bbox, resolution, datetime)
@@ -149,7 +158,44 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   gdalcubes_options(threads = 16)
   createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 }
+getBBoxFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY) {
+  library(sf)
+  p1 <- st_point(c(bottomLeftX,bottomLeftY))
+  p2 <- st_point(c(topRightX, topRightY))
+  simple <-st_sfc(c(p1,p2))
+  bbox <- st_bbox(simple,crs = 4236)
+  return(bbox)
+}
 
+generateSatelliteImagesFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY,datetime,limit,desiredBands,resolution,cloudCoverageInPercentage) {
+  bbox <- getBBoxFromAOI(bottomLeftX,bottomLeftY,topRightX,topRightY)
+  items = stacRequestAOI(bbox,datetime,limit)
+  desiredBands <- unlist(strsplit(desiredBands,','))
+  imageCollection =  createImageColletion(desiredBands, cloudCoverageInPercentage, items)
+  cubeView = createCubeViewAOI(bbox, resolution, datetime)
+  gdalcubes_options(threads = 16)
+  createTifFileFromAOI(imageCollection, cubeView)
+  
+  }
+
+createTifFileFromAOI <- function(imageCollection,cubeView){
+  # Set mask for further cloud filtering
+  S2.mask = image_mask("SCL", values = c(3,8,9))
+  # Create raster cube
+  sentinel <- raster_cube(imageCollection, cubeView, S2.mask) 
+  print(sentinel)
+  write_tif(
+    sentinel,
+    dir = "~/GitHub/backend/R",
+    prefix = "",
+    overviews = FALSE,
+    COG = TRUE,
+    rsmpl_overview = "nearest",
+    creation_options = NULL,
+    write_json_descr = FALSE,
+    pack = NULL
+  )
+}
 transformTrainingDataToEPSGFromCube <- function(trainingData) {
   bbox = st_bbox(trainingData)
   bboxWGS84 = bboxToWGS84(bbox)
@@ -220,3 +266,4 @@ plotTifFile <- function(filePath){
 # sentinel
 # plotRGB(sentinel, r=3, g=2, b=1, stretch = "lin")
 
+generateSatelliteImagesFromAOI(7,50,8,51,'2021-06-01/2021-06-30',100,c('B02','B03','B04','SCL'),200,20)
