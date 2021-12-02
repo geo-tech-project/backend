@@ -1,15 +1,29 @@
 # Remove all variables from current environment
 rm(list=ls())
+# getwd()
+# trainingDataPath <- "./Trainingsdaten/trainingsdaten_kenia_21097.gpkg"
+# datetime = "2021-06-01/2021-06-30"
+# limit = 100
+# desiredBands = c("B02","B03","B04","SCL")
+# resolution = 400
+# cloudCoverageInPercentage = 20
 #library(gdalcubes)
+
 ################################################################################
 ################################################################################
 
 # Load all necessary functions
+
+
+# Function to get the UTM zone from longitude
+# parameters: - longitude of a coordinate in WGS84
 getUTMZone <- function (longitude){
   return( (floor((longitude + 180)/6) %% 60) + 1)
 }
 
-
+# Function that gets the EPSG code from a UTM zone
+# All EPSG codes to be returned are in UTM coordinates of WGS84
+# parameters: - UTM Zone
 epsgCodeFromUTMzone <- function(utmZone){
   if(utmZone < 10){
     x <- toString(utmZone)
@@ -21,15 +35,20 @@ epsgCodeFromUTMzone <- function(utmZone){
   return(paste("EPSG:326",string, sep=""))
 }
 
+# Function that returns the EPSG code of an crs depending on the longitude
+# All EPSG codes to be returned are in UTM coordinates of WGS84
+# parameters: - longitude of a coordinate in WGS84
 getEPSG <- function(longitude){
   zone <- getUTMZone(longitude)
   epsg <- epsgCodeFromUTMzone(zone)
   return(epsg)
 }
+
+
 # Function to get items from stac
 # parameters: - bbox of area of interest
-#             - date period as string (example: "2021-06-01/2021-06-30")
-#             - limit -> maximum count of items
+#             - datetime (String): (example: "2021-06-01/2021-06-30")
+#             - limit (integer) -> maximum count of items
 stacRequest <- function(bbox, datetime, limit) {
   library(rstac)
   s = stac("https://earth-search.aws.element84.com/v0")
@@ -45,6 +64,7 @@ stacRequest <- function(bbox, datetime, limit) {
 }
 
 # Function to transform a bbox of any crs to a bbox with a WGS84 crs
+# parameters: bbox of the area of interest
 bboxToWGS84 <- function(bbox){
   library(sf)
   st_as_sfc(bbox) |>
@@ -53,6 +73,8 @@ bboxToWGS84 <- function(bbox){
   return(bbox_WGS84)
 } 
 
+# Function that returns the number of days that are within a dateperiod
+# parameters: - datetime (String): "YYYY-MM-DD/YYYY-MM-DD"
 numberOfDaysFromPeriod <- function(datetime) {
   date1 <- substr(datetime,12,21)
   date1 <- gsub(pattern = "-", replacement = "/",date1, fixed = TRUE)
@@ -65,12 +87,20 @@ numberOfDaysFromPeriod <- function(datetime) {
   return(survey$date_diff)
 }
 
+# Function that creates an image collection
+# parameters: - desiredBands (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) 
+#             - cloudCoverageInPercentage (Float)
+#             - items found by the stac request
 createImageColletion <- function(desiredBands, cloudCoverageInPercentage, items){
   library(gdalcubes)
   s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
   return(s2_collection)
 }
 
+# Function that creates the view of a cube
+# parameters: - bbox of area of interest
+#             - resolution in meters (Integer): (options: 10/20/60/100/200/400)
+#             - datetime (String): (example: "2021-06-01/2021-06-30")
 createCubeView <- function(bbox, resolution, datetime){
   bboxWGS84 = bboxToWGS84(bbox)
   lon = bboxWGS84["xmin"]
@@ -84,6 +114,7 @@ createCubeView <- function(bbox, resolution, datetime){
                                           top=bbox["ymax"] + 1000, bottom=bbox["ymin"] - 1000))
   return (v.bbox.overview)
 }
+
 
 createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingData){
   # Set mask for further cloud filtering
@@ -141,7 +172,6 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   # desiredBands <- c(desiredBands)
   # print(desiredBands)
   # print(bands)
-  1+
   imageCollection =  createImageColletion(desiredBands, cloudCoverageInPercentage, items)
   # Creating the cube view
   cubeView = createCubeView(bbox, resolution, datetime)
@@ -210,9 +240,8 @@ plotTifFile <- function(filePath){
 #gdalcubes_options(threads = 16)
 #createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 
-
-
-#generateSatelliteImageFromTrainingData(trainingData, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+plotTifFile("2021-06-01.tif")
 
 # Load tif file to proof if everything is correct
 # library(raster)
