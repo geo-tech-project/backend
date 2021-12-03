@@ -42,30 +42,7 @@ app.get('/stack/:name', (req, res, next) => {
 })
 
 app.post('/calculateaoi', (req, res, next) => {
-    var jsonData = {
-        aoi: {
-            topleft: {
-                lat: req.body.topleftlat,
-                lng: req.body.topleftlng
-            },
-            bottomleft: {
-                lat: req.body.bottomleftlat,
-                lng: req.body.bottomleftlng
-            },
-            bottomright: {
-                lat: req.body.bottomrightlat,
-                lng: req.body.bottomrightlng
-            },
-            topright: {
-                lat: req.body.toprightlat,
-                lng: req.body.toprightlng
-            },
-        },
-        option: req.body.option,
-        startDate: req.body.startDate,
-        endDate: req.body.endDate,
-        filename: req.body.filename
-    }
+    var jsonData = req.body
     console.log(jsonData);
     console.log("calculating aoi...");
     callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
