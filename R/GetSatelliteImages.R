@@ -47,14 +47,6 @@ getBBoxFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY) {
   library(rgeos)
   bbox <- rgeos::bbox2SP(n = topRightY, s = bottomLeftY, w = bottomLeftX, e = topRightX,
                          proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
-  #library(sf)
-  #library(raster)
-  #p1 <- st_point(c(bottomLeftX,bottomLeftY))
-  #p2 <- st_point(c(topRightX, topRightY))
-  #simple <-st_sfc(c(p1,p2))
-  #proj <- +proj=longlat +datum=WGS84 +no_defs 
-  #bbox <- st_bbox(simple,crs = proj)
-  #return(bbox)
 }
 
 transformBBOXcrsToUTM <- function(bboxWGS84){
