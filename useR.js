@@ -50,7 +50,7 @@ async function executeAndLog(rFilePath, functionName, paramObj) {
 }
 
 foo = async () => {
-    let out = await executeAndLog(rFilePath, 'generateSatelliteImagesFromAOI', configs_aoi)
+    let out = await executeAndLog(rFilePath, 'generateSatelliteImageFromTrainingData', configs)
     console.log(out);
 
 }
