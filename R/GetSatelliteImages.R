@@ -4,15 +4,15 @@ rm(list=ls())
 ############################## FUNCTIONS #######################################
 ################################################################################
 
-# Function to get the UTM zone from longitude
-# parameters: - longitude of a coordinate in WGS84
+# Function to get the UTM zone from longitude.
+# parameters: - longitude (Float) of a coordinate in WGS84
 getUTMZone <- function (longitude){
   return( (floor((longitude + 180)/6) %% 60) + 1)
 }
 
 # Function that gets the EPSG code from a UTM zone
 # All EPSG codes to be returned are in UTM coordinates of WGS84
-# parameters: - UTM Zone
+# parameters: - UTM Zone (Integer)
 epsgCodeFromUTMzone <- function(utmZone){
   if(utmZone < 10){
     x <- toString(utmZone)
@@ -24,16 +24,16 @@ epsgCodeFromUTMzone <- function(utmZone){
   return(paste("EPSG:326",string, sep=""))
 }
 
-# Function that returns the EPSG code of an crs depending on the longitude
-# All EPSG codes to be returned are in UTM coordinates of WGS84
-# parameters: - longitude of a coordinate in WGS84
+# Function that returns the EPSG code of an CRS depending on the longitude.
+# All EPSG codes to be returned are in UTM coordinates of WGS84.
+# parameters: - longitude (Float) of a coordinate in WGS84
 getEPSG <- function(longitude){
   zone <- getUTMZone(longitude)
   epsg <- epsgCodeFromUTMzone(zone)
   return(epsg)
 }
 
-# Function to transform a bbox of any crs to a bbox with a WGS84 crs
+# Function to transform a bbox of any CRS to a bbox with a WGS84 CRS.
 # parameters: bbox of the area of interest
 bboxToWGS84 <- function(bbox){
   library(sf)
@@ -43,12 +43,20 @@ bboxToWGS84 <- function(bbox){
   return(bbox_WGS84)
 }
 
+# Function that creates a bbox from two coordinates (bottom left and top right coordinates).
+# parameters: - bottomLeftX (Float)
+#             - bottomLeftY (Float)
+#             - topRightX (Float)
+#             - topRightY (Float)
 getBBoxFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY) {
   library(rgeos)
   bbox <- rgeos::bbox2SP(n = topRightY, s = bottomLeftY, w = bottomLeftX, e = topRightX,
                          proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+  return (bbox)
 }
 
+# Function that transforms a bbox with a WGS84 CRS to a bbox with the same CRS used in the cube view function.
+# parameters: bbox of the area of interest in WGS84
 transformBBOXcrsToUTM <- function(bboxWGS84){
   library(rgdal)
   if (!is.null(bboxWGS84@bbox[1,1])){
@@ -61,6 +69,8 @@ transformBBOXcrsToUTM <- function(bboxWGS84){
   return (bbox)
 }
 
+# Function that transforms the training data to the same CRS used in the cube view function.
+# parameters: training data
 transformTrainingDataToCRSFromCube <- function(trainingData) {
   bbox = st_bbox(trainingData)
   bboxWGS84 = bboxToWGS84(bbox)
@@ -70,7 +80,7 @@ transformTrainingDataToCRSFromCube <- function(trainingData) {
   return (trainingDataInCRSFromCube)
 }
 
-# Function that returns the number of days that are within a dateperiod
+# Function that returns the number of days that are within a date period.
 # parameters: - datetime (String): "YYYY-MM-DD/YYYY-MM-DD"
 numberOfDaysFromPeriod <- function(datetime) {
   date1 <- substr(datetime,12,21)
@@ -84,10 +94,10 @@ numberOfDaysFromPeriod <- function(datetime) {
   return(survey$date_diff)
 }
 
-# Function to get items from stac
-# parameters: - bbox of area of interest
+# Function that returns useable satellite images from the stac catalogue.
+# parameters: - bbox of area of interest in any CRS
 #             - datetime (String): (example: "2021-06-01/2021-06-30")
-#             - limit (integer) -> maximum count of items
+#             - limit (Integer) -> maximum count of found images from stac to be used
 stacRequest <- function(bbox, datetime, limit) {
   library(rstac)
   s = stac("https://earth-search.aws.element84.com/v0")
@@ -102,7 +112,7 @@ stacRequest <- function(bbox, datetime, limit) {
   return(items)
 }
 
-# Function that creates an image collection
+# Function that creates an image collection.
 # parameters: - desiredBands (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) 
 #             - cloudCoverageInPercentage (Float)
 #             - items found by the stac request
@@ -112,7 +122,7 @@ createImageColletion <- function(desiredBands, cloudCoverageInPercentage, items)
   return(s2_collection)
 }
 
-# Function that creates the view of a cube
+# Function that creates the view of a cube.
 # parameters: - bbox of area of interest in UTM coordinates
 #             - resolution in meters (Integer): (options: 10/20/60/100/200/400)
 #             - datetime (String): (example: "2021-06-01/2021-06-30")
@@ -131,10 +141,14 @@ createCubeView <- function(bboxUTM, resolution, datetime){
   return (v.bbox.overview)
 }
 
+# Function that creates the needed satellite image from the training data as a tif file.
+# parameters: - image collection (from createImageCollection function)
+#             - cube view (from createCubeView function)
+#             - training data 
 createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingData){
   # Set mask for further cloud filtering
   S2.mask = image_mask("SCL", values = c(3,8,9))
-  # Create raster cube
+  # Create raster cube and filter images by the geometry of the training data
   if (!is.null(trainingData$geom)){
     sentinel <- raster_cube(imageCollection, cubeView, S2.mask) |>
       filter_geom(trainingData$geom)
@@ -157,6 +171,13 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
   )
 }
 
+# Function that combines all prior functions to one function. It generates a satellite image as a tif file.
+# parameters: - trainingDataPath: path to where the training data is stored
+#             - datetime (String): (example: "2021-06-01/2021-06-30")
+#             - resolution in meters (Integer): (options: 10/20/60/100/200/400)
+#             - limit (Integer) -> maximum count of found images from stac to be used
+#             - desiredBands (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) 
+#             - cloudCoverageInPercentage (Float)
 generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
   library(sf)
   # Read the path to upload the training data
@@ -180,6 +201,9 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 }
 
+# Function that creates the needed satellite image from the training data as a tif file.
+# parameters: - image collection (from createImageCollection function)
+#             - cube view (from createCubeView function)
 createTifFileFromAOI <- function(imageCollection,cubeView){
   # Set mask for further cloud filtering
   S2.mask = image_mask("SCL", values = c(3,8,9))
@@ -198,6 +222,17 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
     pack = NULL
   )
 }
+
+# Function that combines all prior functions to one function. It generates a satellite image as a tif file.
+# parameters: - bottomLeftX (Float)
+#             - bottomLeftY (Float)
+#             - topRightX (Float)
+#             - topRightY (Float)
+#             - datetime (String): (example: "2021-06-01/2021-06-30")
+#             - resolution in meters (Integer): (options: 10/20/60/100/200/400)
+#             - limit (Integer) -> maximum count of found images from stac to be used
+#             - desiredBands (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) 
+#             - cloudCoverageInPercentage (Float)
 generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY,datetime,limit,desiredBands,resolution,cloudCoverageInPercentage) {
   # Create bbox of coordinates
   bboxWGS84 <- getBBoxFromAOI(bottomLeftX,bottomLeftY,topRightX,topRightY)
@@ -218,6 +253,8 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   createTifFileFromAOI(imageCollection, cubeView)
 }
 
+# Function that loads and plots a tif file depending on a file path.
+# parameters: - filePath: path to the stored tif
 plotTifFile <- function(filePath){
   library(raster)
   sentinel <- stack(filePath)

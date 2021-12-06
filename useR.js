@@ -9,14 +9,14 @@ const R = require('r-integration');
 const rFilePath = './R/GetSatelliteImages.R';
 
 /**
- * name of the R function which will be used to load a GeoTiff when Training Data are given.  
+ * name of the R function which will be used to load a geoTiff when training data are given.  
  */
 let functionGetTrainingData = 'generateSatelliteImageFromTrainingData';
 
 /**
  * name of the R function which will be used to load a GeoTiff for the given AOI.
  */
-let functionGetAoiData = 'generateSatelliteImagesFromAOI';
+let functionGetAOIData = 'generateSatelliteImageFromAOI';
 
 /**
  * Dummy data for starting an request on the generateSatelliteImageFromTrainingData R-Function, used for implementing and testing.
@@ -36,9 +36,9 @@ let configs_trainingData = {
 let configs_aoi = {
     bottomLeftX: 7,
     bottomLeftY: 50,
-    topRightX: 8,
-    topRightY: 51,
-    datetime: '2015-06-01/2021-06-30',
+    topRightX: 7.1,
+    topRightY: 50.1,
+    datetime: '2021-06-01/2021-06-30',
     limit: 100,
     desiredBands: ["B02", "B03", "B04", "SCL"],
     resolution: 20,
