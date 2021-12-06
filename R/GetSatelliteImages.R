@@ -116,7 +116,8 @@ stacRequest <- function(bbox, datetime, limit) {
 # parameters: - desiredBands (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) 
 #             - cloudCoverageInPercentage (Float)
 #             - items found by the stac request
-createImageColletion <- function(desiredBands, cloudCoverageInPercentage, items){
+createImageCollection <- function(desiredBands, cloudCoverageInPercentage, items){
+  # TODO : if(item$features == null) Schmeiße entssprechenden Fehler !!!
   library(gdalcubes)
   s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
   return(s2_collection)
@@ -188,13 +189,13 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   bbox = st_bbox(trainingData)
   # Querying images with rstac
   items = stacRequest(bbox, datetime, limit)
-  print(items)
+  # print(items)
   # Creating an image collection
-  imageCollection =  createImageColletion(desiredBands, cloudCoverageInPercentage, items)
-  print(imageCollection)
+  imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
+  # print(imageCollection)
   # Creating the cube view
   cubeView = createCubeView(bbox, resolution, datetime)
-  print(cubeView)
+  # print(cubeView)
   # Parallel computing
   gdalcubes_options(threads = 16)
   # Create tif file
@@ -242,7 +243,7 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   items = stacRequest(bboxUTM, datetime, limit)
   print(items)
   # Creating an image collection
-  imageCollection =  createImageColletion(desiredBands, cloudCoverageInPercentage, items)
+  imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
   print(imageCollection)
   # Creating the cube view
   cubeView = createCubeView(bboxUTM, resolution, datetime)
@@ -295,7 +296,7 @@ plotTifFile <- function(filePath){
 # items
 # 
 # # Creating an image collection
-# imageCollection = createImageColletion(desiredBands, cloudCoverageInPercentage, items)
+# imageCollection = createImageCollection(desiredBands, cloudCoverageInPercentage, items)
 # imageCollection
 # 
 # # Creating the cube view
@@ -334,7 +335,7 @@ plotTifFile <- function(filePath){
 # items
 # 
 # # Creating an image collection
-# imageCollection =  createImageColletion(desiredBands, resolution, items)
+# imageCollection =  createImageCollection(desiredBands, resolution, items)
 # imageCollection
 # 
 # # Creating the cube view
