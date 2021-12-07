@@ -1,0 +1,14 @@
+{
+    "topleftlat": 51.94553466305084,
+    "topleftlng": 7.599002135053437,
+    "bottomleftlat": 51.96880766656288,
+    "bottomleftlng": 7.599002135053437,
+    "bottomrightlat": 51.96880766656288,
+    "bottomrightlng": 7.66322751962834,
+    "toprightlat": 51.94553466305084,
+    "toprightlng": 7.66322751962834,
+    "option": "data",
+    "startDate": "2021-12-12T23:00:00.000Z",
+    "endDate": "2021-12-15T23:00:00.000Z",
+    "filename": "trainingsdaten_kenia_4_32637.gpkg"
+}
