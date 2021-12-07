@@ -161,8 +161,8 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
   #print(sentinel)
   write_tif(
     sentinel,
-    dir = "~/GitHub/backend/R",
-    prefix = "",
+    dir = "~/GitHub/backend/R/outputData",
+    prefix = 'trainingData_',
     overviews = FALSE,
     COG = TRUE,
     rsmpl_overview = "nearest",
@@ -213,8 +213,8 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
   #print(sentinel)
   write_tif(
     sentinel,
-    dir = "~/GitHub/backend/R",
-    prefix = "",
+    dir = "~/GitHub/backend/R/outputData",
+    prefix = "aoi_",
     overviews = FALSE,
     COG = TRUE,
     rsmpl_overview = "nearest",
