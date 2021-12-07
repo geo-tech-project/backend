@@ -1,3 +1,24 @@
+//Hard coded parameters, saved seperately for easy modification.
+
+/**
+ * Hard coded parameter with desiredBands.
+ */
+const DESIRED_BANDS = ["B02", "B03", "B04", "SCL"];
+
+/**
+ * Hard coded parameter for limit of stac request.
+ */
+const LIMIT = 100;
+
+/**
+ * Hard coded parameter for resolution of packages.
+ */
+const RESOLUTION = 400;
+
+/**
+ * Hard coded parameter for the cloud coverage in percentage.
+ */
+const CLOUD_COVERAGE_IN_PERCENTAGE = 20;
 /**
  * R package to execute R Files, commands and methods
  */
@@ -18,35 +39,10 @@ let functionGetTrainingData = 'generateSatelliteImageFromTrainingData';
  */
 let functionGetAOIData = 'generateSatelliteImageFromAOI';
 
-/**
- * Dummy data for starting an request on the generateSatelliteImageFromTrainingData R-Function, used for implementing and testing.
- */
-let configs_trainingData = {
-    trainingDataPath: "./R/Trainingsdaten/trainingsdaten_kenia_2_4326.gpkg",
-    datetime: '2021-06-01/2021-06-30',
-    limit: 100,
-    desiredBands: ["B02", "B03", "B04", "SCL"],
-    resolution: 200,
-    cloudCoverageInPercentage: 20
-}
+
 
 /**
- * Dummy data for starting an request on the generateSatelliteImagesFromAOI R-Function, used for implementing and testing.
- */
-let configs_aoi = {
-    bottomLeftX: 7,
-    bottomLeftY: 50,
-    topRightX: 7.1,
-    topRightY: 50.1,
-    datetime: '2021-06-01/2021-06-30',
-    limit: 20,
-    desiredBands: ["B02", "B03", "B04", "SCL"],
-    resolution: 20,
-    cloudCoverageInPercentage: 20
-}
-
-/**
- * These functiion make the call of the function to get the Tif for the given Training data. These function will also try and catch these 
+ * These function make the call of the function to get the Tif for the given Training data. These function will also try and catch these 
  * R function, to catch all the errors that could maybe occur. If the R function run successsfully these function will return the output, if not
  * it will return an error object.  
  * @param {String} trainingDataPath The relative path to the location of the trainingData. The Training Data can be formatted as Geopackage or
@@ -90,6 +86,33 @@ async function getTrainingDataTif(trainingDataPath, datetime, limit, desiredBand
     }
     return output;
 }
+
+/**
+ * These function make the call of the function to get the Tif for the given AOI data. These function will also try and catch these 
+ * R function, to catch all the errors that could maybe occur. If the R function run successsfully these function will return the output, if not
+ * it will return an error object.
+ * @param {Number} bottomLeftX The Number of the longitude coordinate of the bottom left corner of the AOI. Must be given in WGS84. Will 
+ * be passed to R. 
+ * @param {Number} bottomLeftY The Number of the latitude coordinate of the bottom left corner of the AOI. Must be given in WGS84. Will 
+ * be passed to R. 
+ * @param {Number} topRightX The Number of the longitude coordinate of the top right corner of the AOI. Must be given in WGS84. Will 
+ * be passed to R.
+ * @param {Number} topRightY  The Number of the latitude coordinate of the top right corner of the AOI. Must be given in WGS84. Will 
+ * be passed to R.
+ * @param {String} datetime The start and end Date. Must be formatted as RFC3339 String. Start date must be lower than end date. Format is: 
+ * 'YYYY-MM-DD/YYYY-MM-DD. Will be passed to R.  
+ * @param {Number} limit The limit of returned features from the STAC request, can be specified with the limit parameter. For example if limit
+ * is 100, the max number of returned features is 100. Will be passed to R.
+ * @param {String[]} desiredBands Telling R-STAC which bands from the Sentinel data will be selected. Each Band must be a standalone String in
+ * the Array. Required is the 'SCL' band for filtering the clouds from the data. Will be passed to R. 
+ * @param {Number} resolution The resolution says how big one pixel is. For example if resolution is 20. One Pixel will have the size 20x20.
+ * The unit of ressolution is metres. Will be passed to R.
+ * @param {Number} cloudCoverageInPercentage These parameter define, which found features will be sorted off, based on their cloud Coverage.
+ * For example if cloudCoverageInPercentage is 20, than all Features with an overall cloudCoverage greater than 20 will be sorted of. Will be
+ * passed to R.
+ * @returns The result of the R script, if the script worked successfully, if not it will return a error object, containing an error message and 
+ * the actual error which is thrown by R.
+ */
 async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
 
     let parameters = {
@@ -139,10 +162,10 @@ function processInputData(data) {
         haveTrainingData: false,
         trainingDataPath: '',
         datetime: '',
-        desiredBands: ["B02", "B03", "B04", "SCL"],
-        limit: 100,
-        resolution: 20,
-        cloudCoverageInPercentage: 20
+        desiredBands: DESIRED_BANDS,
+        limit: LIMIT,
+        resolution: RESOLUTION,
+        cloudCoverageInPercentage: CLOUD_COVERAGE_IN_PERCENTAGE
     }
     if (data.option == "data") {
         out.haveTrainingData = true;
