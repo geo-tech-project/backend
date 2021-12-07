@@ -40,18 +40,8 @@ app.post('/start', async (req, res, next) => {
     /**
      * Formatting all needed incomingData in the way the getData function needs them.
      */
-    let jsonData = {
-        bottomleftlat: req.body.bottomleftlat,
-        bottomleftlng: req.body.bottomleftlng,
-        toprightlat: req.body.toprightlat,
-        toprightlng: req.body.toprightlng,
-        option: req.body.option,
-        startDate: req.body.startDate,
-        endDate: req.body.endDate,
-        filename: req.body.filename,
-
-    }
-    let response = await getData(jsonData);
+    console.log(req.body);
+    let response = await getData(req.body);
     res.send(response);
 })
 

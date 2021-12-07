@@ -29,15 +29,7 @@ const R = require('r-integration');
  */
 const rFilePath = './R/GetSatelliteImages.R';
 
-/**
- * name of the R function which will be used to load a geoTiff when training data are given.  
- */
-let functionGetTrainingData = 'generateSatelliteImageFromTrainingData';
 
-/**
- * name of the R function which will be used to load a GeoTiff for the given AOI.
- */
-let functionGetAOIData = 'generateSatelliteImageFromAOI';
 
 
 
@@ -75,7 +67,7 @@ async function getTrainingDataTif(trainingDataPath, datetime, limit, desiredBand
     let output;
     //try to execute R code
     try {
-        output = await R.callMethodAsync(rFilePath, functionGetTrainingData, parameters);
+        output = await R.callMethodAsync(rFilePath, "generateSatelliteImageFromTrainingData", parameters);
     } catch (error) {
         //Build an error object.
         //TODO: More specific error msg from R given to the error object.
@@ -129,7 +121,7 @@ async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetim
 
     let output;
     try {
-        output = await R.callMethodAsync(rFilePath, functionGetAOIData, parameters);
+        output = await R.callMethodAsync(rFilePath, 'generateSatelliteImageFromAOI', parameters);
     } catch (error) {
         output = {
             msg: "An Error in the R Script occured",
@@ -162,10 +154,10 @@ function processInputData(data) {
         haveTrainingData: false,
         trainingDataPath: '',
         datetime: '',
-        desiredBands: DESIRED_BANDS,
+        desiredBands: data.channels.push('SCL'),
         limit: LIMIT,
-        resolution: RESOLUTION,
-        cloudCoverageInPercentage: CLOUD_COVERAGE_IN_PERCENTAGE
+        resolution: parseInt(data.resolution),
+        cloudCoverageInPercentage: data.coverage
     }
     if (data.option == "data") {
         out.haveTrainingData = true;
@@ -176,7 +168,6 @@ function processInputData(data) {
     let path = './R/Trainingsdaten/'
     out.trainingDataPath = path + data.filename;
     return out;
-
 }
 
 /**
