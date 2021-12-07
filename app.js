@@ -3,10 +3,10 @@ const path = require('path');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const {getData} = require('./useR');
+var cors = require('cors');
+const R = require('r-integration');
 
-//const {getStacLinks} = require('./stacApiRequest');
-
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8781;
 
 // storage for multer upload
 let storage = multer.diskStorage({
@@ -24,21 +24,15 @@ let upload = multer({
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.urlencoded({extended : false}));
 app.use(bodyParser.json());
+app.use(express.urlencoded({
+    extended: true
+}));
+app.use(cors());
 
-
-app.get('/', (req, res, next) => {
-    console.log('get /')
-    res.send('yup')
-})
-
-app.get('/stac',(req,res,next) => {
-
-});
-app.get('/image/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
+app.get("/test", (req, res, next) => {
+    res.send("yup");
 })
 
 
@@ -59,8 +53,32 @@ app.post('/start', async (req, res, next) => {
     }
    let response = await getData(jsonData);
     res.send(response);
+  
+// route to return uploaded file
+app.get('/file/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
 
+// route to return uploaded file
+app.get('/stack/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './public/stack/', req.params.name));
+})
+
+app.post('/calculateaoi', (req, res, next) => {
+    var jsonData = req.body
+    console.log(jsonData);
+    console.log("calculating aoi...");
+    callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
+        console.log(result);
+        res.send(result);
+    }).catch((error) => {
+        console.error(error);
+        res.send(error);
+    })
+})
+
+
+// route to upload file only for multer
 app.post('/upload', upload.single('file'), function (req, res) {
     if (!req.file) {
         console.log("No file is available!");
