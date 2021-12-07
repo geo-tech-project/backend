@@ -39,7 +39,7 @@ let configs_aoi = {
     topRightX: 7.1,
     topRightY: 50.1,
     datetime: '2021-06-01/2021-06-30',
-    limit: 100,
+    limit: 20,
     desiredBands: ["B02", "B03", "B04", "SCL"],
     resolution: 20,
     cloudCoverageInPercentage: 20
@@ -90,7 +90,31 @@ async function getTrainingDataTif(trainingDataPath, datetime, limit, desiredBand
     }
     return output;
 }
+async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
 
+    let parameters = {
+        bottomLeftX: bottomLeftX,
+        bottomLeftY: bottomLeftY,
+        topRightX: topRightX,
+        topRightY: topRightY,
+        datetime: datetime,
+        limit: limit,
+        desiredBands: desiredBands,
+        resolution: resolution,
+        cloudCoverageInPercentage: cloudCoverageInPercentage
+    }
+
+    let output;
+    try {
+        output = await R.callMethodAsync(rFilePath, functionGetAOIData, parameters);
+    } catch (error) {
+        output = {
+            msg: "An Error in the R Script occured",
+            error: error
+        }
+    }
+    return output;
+}
 /**
  * This function will process the incoming data in the format which is needed by the R function. For example putting startDate and EndDate in
  * a single datetime. In the moment some data which can not be specified in the Front End, are hardcoded here.  
@@ -113,11 +137,11 @@ function processInputData(data) {
         topRightX: data.toprightlng,
         topRightY: data.toprightlat,
         haveTrainingData: false,
-        trainingDataPath: data.filename,
+        trainingDataPath: '',
         datetime: '',
         desiredBands: ["B02", "B03", "B04", "SCL"],
         limit: 100,
-        resolution: 200,
+        resolution: 20,
         cloudCoverageInPercentage: 20
     }
     if (data.option == "data") {
@@ -126,6 +150,8 @@ function processInputData(data) {
         out.haveTrainingData = false;
     }
     out.datetime = data.startDate.substring(0, 10) + '/' + data.endDate.substring(0, 10);
+    let path = './R/Trainingsdaten/'
+    out.trainingDataPath = path + data.filename;
     return out;
 
 }
@@ -147,12 +173,15 @@ function processInputData(data) {
  */
 async function getData(request) {
     let processedData = processInputData(request);
-    let path = './R/Trainingsdaten/'
-    processedData.trainingDataPath = path + processedData.trainingDataPath;
-    console.log(processedData);
-    let output;
+    let output = {
+        aoi: {},
+        trainingData: {}
+    }
+    output.aoi = await getAoiTif(processedData.bottomLeftX, processedData.bottomLeftY, processedData.topRightX, processedData.topRightY, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
     if (processedData.haveTrainingData) {
-        output = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
+        output.trainingData = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
+    } else {
+        output.trainingData = null;
     }
     return output;
 }
