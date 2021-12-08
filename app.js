@@ -64,7 +64,7 @@ app.get('/rundemo', (req, res, next) => {
 // async prototype
 app.get("/async", (req, res, next) => {
     console.log("testing asyncronously...")
-    //let algorithm = '"rf"';
+    // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
     //let trees = 75;
     callMethodAsync("./R/ML_AOA.R", "training", {algorithm: 'rf',data: '[3]'}) //Hyperparameter für die Algorithmen
     .then((result) => {

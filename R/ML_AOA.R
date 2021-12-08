@@ -40,9 +40,6 @@ training <- function(algorithm, data) {
   library(sf)
   library(Orcs)
   library(jsonlite)
-  #library(rstudioapi)
-
-  #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
   
   # load raster stack from data directory
   sen_ms <- stack("R/data/Sen_Muenster.grd")
@@ -160,9 +157,6 @@ classifyAndAOA <- function(data) {
   library(doParallel)
   library(parallel)
   library(Orcs)
-  #library(rstudioapi)
-  
-  #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
   # load raster stack from data directory
   sen_ms <- stack("R/data/Sen_Muenster.grd")
