@@ -149,7 +149,7 @@ async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetim
  * @returns The processed data as an object.
  */
 function processInputData(data) {
-    var channels = data.channels.push('SCL')
+    data.channels.push('SCL')
     var out = {
         bottomLeftX: data.bottomleftlng,
         bottomLeftY: data.bottomleftlat,
@@ -171,7 +171,6 @@ function processInputData(data) {
     out.datetime = data.startDate.substring(0, 10) + '/' + data.endDate.substring(0, 10);
     let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
-    out.desiredBands.push('SCL');
     console.log("out",out);
 
     return out;
