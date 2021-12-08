@@ -1,0 +1,14 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <CategoryNames>
+      <Category></Category>
+      <Category>Fallow field</Category>
+      <Category>Grassland</Category>
+      <Category>Industrial</Category>
+      <Category>Inland water</Category>
+      <Category>Mixed forest</Category>
+      <Category>Planted field</Category>
+      <Category>Urban</Category>
+    </CategoryNames>
+  </PAMRasterBand>
+</PAMDataset>
