@@ -80,7 +80,7 @@ training <- function(algorithm, data) {
   if(algorithm == 'rf') {
       tune_grid <- expand.grid(mtry=c(hyperparameter[1]))
   } else if (algorithm == 'xgbTree') {
-      tune_grid <- expand.grid(nrounds = c(hyperparameter[1]),
+      tune_grid <- expand.grid(nrounds =  c(hyperparameter[1]),
                                           c(hyperparameter[2]),
                                           c(hyperparameter[3]),
                                           c(hyperparameter[4]),
