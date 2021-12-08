@@ -100,8 +100,8 @@ training <- function(algorithm, data) {
                  method=algorithm,
                  metric="Kappa",
                  trControl=ctrl,
-                 tuneGrid = tune_grid,
-                 tuneLength = 10)
+                 tuneGrid = tune_grid)
+                 #tuneLength = 10) // bin mir nicht sicher welche Auswirkung der Parameter hat
                  #importance=TRUE,
                  #ntree=trees)
   
