@@ -76,7 +76,8 @@ training <- function(algorithm, data) {
   hyperparameter <- fromJSON(data)
   if(algorithm == 'rf') {
       tune_grid <- expand.grid(mtry=c(hyperparameter[1]))
-  } else if (algorithm == 'xgbTree') {
+  } 
+  else if (algorithm == 'xgbTree') {
       tune_grid <- expand.grid(nrounds =  c(hyperparameter[1]),
                                           c(hyperparameter[2]),
                                           c(hyperparameter[3]),
@@ -84,8 +85,10 @@ training <- function(algorithm, data) {
                                           c(hyperparameter[5]),
                                           c(hyperparameter[6]),
                                           c(hyperparameter[7]))
-  } else {
-      print("Noch nicht implementiert")
+  } 
+  else if (algorithm == 'svmRadial'){
+      tune_grid <- expand.grid( sigma =  c(hyperparameter[1]),
+                                C = c(hyperparameter[2]))  
   }
 
 
