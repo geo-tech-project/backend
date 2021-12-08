@@ -78,6 +78,24 @@ app.post('/calculateaoi', (req, res, next) => {
     })
 })
 
+// async prototype
+app.get("/async", (req, res, next) => {
+    console.log("testing asyncronously...")
+    let algorithm = '"rf"';
+    let trees = 75;
+    callMethodAsync("./scripts/ML_AOA.R", "training", {algorithm: 'rf', trees: 75}).then((result) => {
+        console.log(result)
+        callMethodAsync("./scripts/ML_AOA.R", "classifyAndAOA", ["success"]).then((result) => {
+            console.log(result);
+            res.send('success')
+        }).catch((error) => {
+            console.error(error);
+        })
+    }).catch((error) => {
+        console.error(error);
+    })
+})
+
 
 // route to upload file only for multer
 app.post('/upload', upload.single('file'), function (req, res) {
