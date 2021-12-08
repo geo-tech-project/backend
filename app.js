@@ -2,7 +2,9 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const bodyParser = require('body-parser');
-const { getData } = require('./useR');
+const {
+    getData
+} = require('./useR');
 var cors = require('cors');
 const R = require('r-integration');
 
@@ -69,13 +71,17 @@ app.get('/rundemo', (req, res, next) => {
     }).catch((error) => {
         console.error(error);
         res.send(error);
-
-      // async prototype
+    })
+})
+// async prototype
 app.get("/async", (req, res, next) => {
     console.log("testing asyncronously...")
     let algorithm = '"rf"';
     let trees = 75;
-    callMethodAsync("./R/ML_AOA.R", "training", {algorithm: 'rf', trees: 75}).then((result) => {
+    callMethodAsync("./R/ML_AOA.R", "training", {
+        algorithm: 'rf',
+        trees: 75
+    }).then((result) => {
         console.log(result)
         callMethodAsync("./R/ML_AOA.R", "classifyAndAOA", ["success"]).then((result) => {
             console.log(result);
@@ -107,5 +113,4 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
-}
-);
+});
