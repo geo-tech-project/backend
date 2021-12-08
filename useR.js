@@ -171,8 +171,6 @@ function processInputData(data) {
     out.datetime = data.startDate.substring(0, 10) + '/' + data.endDate.substring(0, 10);
     let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
-    console.log("out",out);
-
     return out;
 }
 
@@ -197,7 +195,6 @@ async function getData(request) {
         aoi: {},
         trainingData: {}
     }
-    console.log("call with processed data", processedData);
     output.aoi = await getAoiTif(processedData.bottomLeftX, processedData.bottomLeftY, processedData.topRightX, processedData.topRightY, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
     if (processedData.haveTrainingData) {
         output.trainingData = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
