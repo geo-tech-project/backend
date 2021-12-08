@@ -50,19 +50,6 @@ app.get('/stack/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/stack/', req.params.name));
 })
 
-app.post('/calculateaoi', (req, res, next) => {
-    var jsonData = req.body
-    console.log(jsonData);
-    console.log("calculating aoi...");
-    callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
-        console.log(result);
-        res.send(result);
-    }).catch((error) => {
-        console.error(error);
-        res.send(error);
-    })
-})
-
 app.get('/rundemo', (req, res, next) => {
     console.log('calculation demo..');
     callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
