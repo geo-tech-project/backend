@@ -29,15 +29,7 @@ const R = require('r-integration');
  */
 const rFilePath = './R/GetSatelliteImages.R';
 
-/**
- * name of the R function which will be used to load a geoTiff when training data are given.  
- */
-let functionGetTrainingData = 'generateSatelliteImageFromTrainingData';
 
-/**
- * name of the R function which will be used to load a GeoTiff for the given AOI.
- */
-let functionGetAOIData = 'generateSatelliteImageFromAOI';
 
 
 
@@ -75,7 +67,7 @@ async function getTrainingDataTif(trainingDataPath, datetime, limit, desiredBand
     let output;
     //try to execute R code
     try {
-        output = await R.callMethodAsync(rFilePath, functionGetTrainingData, parameters);
+        output = await R.callMethodAsync(rFilePath, "generateSatelliteImageFromTrainingData", parameters);
     } catch (error) {
         //Build an error object.
         //TODO: More specific error msg from R given to the error object.
@@ -129,7 +121,7 @@ async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetim
 
     let output;
     try {
-        output = await R.callMethodAsync(rFilePath, functionGetAOIData, parameters);
+        output = await R.callMethodAsync(rFilePath, 'generateSatelliteImageFromAOI', parameters);
     } catch (error) {
         output = {
             msg: "An Error in the R Script occured",
@@ -149,11 +141,15 @@ async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetim
  *          trainingDataPath: String,
  *          option: Boolean,
  *          startDate: Date,
- *          endDate: Date
+ *          endDate: Date,
+ *          channels: [String],
+ *          resolution: Number,
+ *          coverage: Number
  * }} data The data which must be provided by the POST request, to start the R function. 
  * @returns The processed data as an object.
  */
 function processInputData(data) {
+    var channels = data.channels.push('SCL')
     var out = {
         bottomLeftX: data.bottomleftlng,
         bottomLeftY: data.bottomleftlat,
@@ -162,10 +158,10 @@ function processInputData(data) {
         haveTrainingData: false,
         trainingDataPath: '',
         datetime: '',
-        desiredBands: DESIRED_BANDS,
+        desiredBands: data.channels,
         limit: LIMIT,
-        resolution: RESOLUTION,
-        cloudCoverageInPercentage: CLOUD_COVERAGE_IN_PERCENTAGE
+        resolution: parseInt(data.resolution),
+        cloudCoverageInPercentage: data.coverage
     }
     if (data.option == "data") {
         out.haveTrainingData = true;
@@ -173,10 +169,12 @@ function processInputData(data) {
         out.haveTrainingData = false;
     }
     out.datetime = data.startDate.substring(0, 10) + '/' + data.endDate.substring(0, 10);
-    let path = './R/Trainingsdaten/'
+    let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
-    return out;
+    out.desiredBands.push('SCL');
+    console.log("out",out);
 
+    return out;
 }
 
 /**
@@ -200,6 +198,7 @@ async function getData(request) {
         aoi: {},
         trainingData: {}
     }
+    console.log("call with processed data", processedData);
     output.aoi = await getAoiTif(processedData.bottomLeftX, processedData.bottomLeftY, processedData.topRightX, processedData.topRightY, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
     if (processedData.haveTrainingData) {
         output.trainingData = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
