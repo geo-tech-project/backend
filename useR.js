@@ -154,7 +154,7 @@ function processInputData(data) {
         haveTrainingData: false,
         trainingDataPath: '',
         datetime: '',
-        desiredBands: data.channels.push('SCL'),
+        desiredBands: data.channels,
         limit: LIMIT,
         resolution: parseInt(data.resolution),
         cloudCoverageInPercentage: data.coverage
@@ -165,8 +165,10 @@ function processInputData(data) {
         out.haveTrainingData = false;
     }
     out.datetime = data.startDate.substring(0, 10) + '/' + data.endDate.substring(0, 10);
-    let path = './R/Trainingsdaten/'
+    let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
+    out.desiredBands.push('SCL');
+    console.log("out",out);
     return out;
 }
 
@@ -191,6 +193,7 @@ async function getData(request) {
         aoi: {},
         trainingData: {}
     }
+    console.log("call with processed data", processedData);
     output.aoi = await getAoiTif(processedData.bottomLeftX, processedData.bottomLeftY, processedData.topRightX, processedData.topRightY, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
     if (processedData.haveTrainingData) {
         output.trainingData = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
