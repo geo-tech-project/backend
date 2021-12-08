@@ -75,20 +75,20 @@ training <- function(algorithm, data) {
   #Erstellen eines Grids für die Hyperparameter des jeweiligen Algorithmus: 
   hyperparameter <- fromJSON(data)
   if(algorithm == 'rf') {
-      tune_grid <- expand.grid(mtry=c(hyperparameter[1]))
+      tune_grid <- expand.grid( mtry  = c(hyperparameter[1]))
   } 
   else if (algorithm == 'xgbTree') {
-      tune_grid <- expand.grid(nrounds =  c(hyperparameter[1]),
-                                          c(hyperparameter[2]),
-                                          c(hyperparameter[3]),
-                                          c(hyperparameter[4]),
-                                          c(hyperparameter[5]),
-                                          c(hyperparameter[6]),
-                                          c(hyperparameter[7]))
+      tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
+                                max_depth         = c(hyperparameter[2]),
+                                eta               = c(hyperparameter[3]),
+                                gamma             = c(hyperparameter[4]),
+                                colsample_bytree  = c(hyperparameter[5]),
+                                min_child_weight  = c(hyperparameter[6]),
+                                subsample         = c(hyperparameter[7]))
   } 
   else if (algorithm == 'svmRadial'){
-      tune_grid <- expand.grid( sigma =  c(hyperparameter[1]),
-                                C = c(hyperparameter[2]))  
+      tune_grid <- expand.grid( sigma = c(hyperparameter[1]),
+                                C     = c(hyperparameter[2]))  
   }
 
 
