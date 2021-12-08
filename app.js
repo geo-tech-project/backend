@@ -24,23 +24,16 @@ let upload = multer({
 
 const app = express();
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.urlencoded({
     extended: true
 }));
 app.use(cors());
 
-app.get("/test", (req, res, next) => {
-    res.send("yup");
-})
-
-
 app.post('/start', async (req, res, next) => {
     /**
      * Formatting all needed incomingData in the way the getData function needs them.
      */
-    console.log(req.body);
     let response = await getData(req.body);
     res.send(response);
 })
@@ -59,6 +52,17 @@ app.post('/calculateaoi', (req, res, next) => {
     var jsonData = req.body
     console.log(jsonData);
     console.log("calculating aoi...");
+    callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
+        console.log(result);
+        res.send(result);
+    }).catch((error) => {
+        console.error(error);
+        res.send(error);
+    })
+})
+
+app.get('/rundemo', (req, res, next) => {
+    console.log('calculation demo..');
     callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
         console.log(result);
         res.send(result);

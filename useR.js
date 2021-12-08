@@ -141,11 +141,15 @@ async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetim
  *          trainingDataPath: String,
  *          option: Boolean,
  *          startDate: Date,
- *          endDate: Date
+ *          endDate: Date,
+ *          channels: [String],
+ *          resolution: Number,
+ *          coverage: Number
  * }} data The data which must be provided by the POST request, to start the R function. 
  * @returns The processed data as an object.
  */
 function processInputData(data) {
+    var channels = data.channels.push('SCL')
     var out = {
         bottomLeftX: data.bottomleftlng,
         bottomLeftY: data.bottomleftlat,
@@ -169,6 +173,7 @@ function processInputData(data) {
     out.trainingDataPath = path + data.filename;
     out.desiredBands.push('SCL');
     console.log("out",out);
+
     return out;
 }
 
