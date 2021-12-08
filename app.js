@@ -83,9 +83,9 @@ app.get("/async", (req, res, next) => {
     console.log("testing asyncronously...")
     let algorithm = '"rf"';
     let trees = 75;
-    callMethodAsync("./scripts/ML_AOA.R", "training", {algorithm: 'rf', trees: 75}).then((result) => {
+    callMethodAsync("./R/ML_AOA.R", "training", {algorithm: 'rf', trees: 75}).then((result) => {
         console.log(result)
-        callMethodAsync("./scripts/ML_AOA.R", "classifyAndAOA", ["success"]).then((result) => {
+        callMethodAsync("./R/ML_AOA.R", "classifyAndAOA", ["success"]).then((result) => {
             console.log(result);
             res.send('success')
         }).catch((error) => {

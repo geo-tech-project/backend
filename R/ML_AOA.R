@@ -31,6 +31,7 @@
 
 training <- function(algorithm, trees) {
 
+
   # load packages
   library(raster)
   library(caret)
@@ -38,12 +39,15 @@ training <- function(algorithm, trees) {
   library(lattice)
   library(sf)
   library(Orcs)
+  #library(rstudioapi)
+
+  #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
   
   # load raster stack from data directory
-  sen_ms <- stack("data/Sen_Muenster.grd")
+  sen_ms <- stack("R/data/Sen_Muenster.grd")
   
   # load training data
-  trainSites <- read_sf("data/trainingsites_muenster.gpkg")
+  trainSites <- read_sf("R/data/trainingsites_muenster.gpkg")
   #trainSites <- read_sf(data)
   
   # Ergänze PolygonID-Spalte falls nicht schon vorhanden, um später mit extrahierten Pixeln zu mergen
@@ -80,7 +84,7 @@ training <- function(algorithm, trees) {
                  importance=TRUE,
                  ntree=trees)
   
-  saveRDS(model, file="./tempModel/model.RDS")
+  saveRDS(model, file="R/tempModel/model.RDS")
   
 }
 
@@ -135,18 +139,21 @@ classifyAndAOA <- function(data) {
   library(doParallel)
   library(parallel)
   library(Orcs)
+  #library(rstudioapi)
   
-  # load raster stack from data directory
-  sen_ms <- stack("data/Sen_Muenster.grd")
+  #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
   # load raster stack from data directory
-  model <- readRDS("tempModel/model.RDS")
+  sen_ms <- stack("R/data/Sen_Muenster.grd")
+
+  # load raster stack from data directory
+  model <- readRDS("R/tempModel/model.RDS")
   
   # prediction
   prediction <- predict(sen_ms,model)
 
   # write prediction raster to tif in file directory
-  writeRaster(prediction, "stack/prediction.tif", overwrite = TRUE)
+  writeRaster(prediction, "R/stack/prediction.tif", overwrite = TRUE)
   
   # parallelization
   cl <- makeCluster(4)
@@ -156,7 +163,7 @@ classifyAndAOA <- function(data) {
   AOA <- aoa(sen_ms,model,cl=cl)
 
   # write prediction raster to tif in file directory
-  writeRaster(AOA, "stack/aoa.tif", overwrite=TRUE)
+  writeRaster(AOA, "R/stack/aoa.tif", overwrite=TRUE)
  
   # print variable
   data
@@ -166,7 +173,7 @@ classifyAndAOA <- function(data) {
   furtherTrainAreas <- rasterToPolygons(AOA$AOA, fun = function(x) {x == 0}, dissolve = TRUE)
   
   # Saves the calculated AOnA to a GeoJSON-file
-  toGeoJSON(furtherTrainAreas, "furtherTrainAreas", dest = "./trainAreas", lat.lon, overwrite=TRUE)
+  toGeoJSON(furtherTrainAreas, "furtherTrainAreas", dest = "R/trainAreas", lat.lon, overwrite=TRUE)
 
 }
 
