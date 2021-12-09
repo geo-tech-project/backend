@@ -208,6 +208,12 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
 # parameters: - image collection (from createImageCollection function)
 #             - cube view (from createCubeView function)
 createTifFileFromAOI <- function(imageCollection,cubeView){
+  files <- list.files(path="./R/outputData/")
+  files
+  for (i in 1:length(files)) {
+    file.remove(paste("./R/outputData/",files[i],sep=""))
+    #unlink(paste("./R/outputData/",files[i],sep=""), recursive=TRUE)
+  }
   # Set mask for further cloud filtering
   S2.mask = image_mask("SCL", values = c(3,8,9))
   # Create raster cube
@@ -326,7 +332,7 @@ plotTifFile <- function(filePath){
 # First set your working directory to your github 
 # getwd()
 # setwd("~/GitHub/backend")
-
+# 
 # # Create bbox of coordinates of the AOI
 # bboxWGS84 <- getBBoxFromAOI(7,50,7.1,50.1)
 # bboxWGS84
