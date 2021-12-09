@@ -29,7 +29,7 @@
   # -Trained model as .rds file
 
 
-training <- function(algorithm, trees) {
+training <- function(algorithm, data) {
 
 
   # load packages
@@ -39,9 +39,7 @@ training <- function(algorithm, trees) {
   library(lattice)
   library(sf)
   library(Orcs)
-  #library(rstudioapi)
-
-  #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+  library(jsonlite)
   
   # load raster stack from data directory
   sen_ms <- stack("R/data/Sen_Muenster.grd")
@@ -73,6 +71,27 @@ training <- function(algorithm, trees) {
   ctrl <- trainControl(method="cv", 
                        index = indices$index,
                        savePredictions = TRUE)
+
+  #Erstellen eines Grids für die Hyperparameter des jeweiligen Algorithmus: 
+  hyperparameter <- fromJSON(data)
+  if(algorithm == 'rf') {
+      tune_grid <- expand.grid( mtry  = c(hyperparameter[1]))
+  } 
+  else if (algorithm == 'xgbTree') {
+      tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
+                                max_depth         = c(hyperparameter[2]),
+                                eta               = c(hyperparameter[3]),
+                                gamma             = c(hyperparameter[4]),
+                                colsample_bytree  = c(hyperparameter[5]),
+                                min_child_weight  = c(hyperparameter[6]),
+                                subsample         = c(hyperparameter[7]))
+  } 
+  else if (algorithm == 'svmRadial'){
+      tune_grid <- expand.grid( sigma = c(hyperparameter[1]),
+                                C     = c(hyperparameter[2]))  
+  }
+
+
   
   #Erstellen (Training) des Models
   set.seed(100)
@@ -81,8 +100,10 @@ training <- function(algorithm, trees) {
                  method=algorithm,
                  metric="Kappa",
                  trControl=ctrl,
-                 importance=TRUE,
-                 ntree=trees)
+                 tuneGrid = tune_grid)
+                 #tuneLength = 10) // bin mir nicht sicher welche Auswirkung der Parameter hat
+                 #importance=TRUE,
+                 #ntree=trees)
   
   saveRDS(model, file="R/tempModel/model.RDS")
   
@@ -139,9 +160,6 @@ classifyAndAOA <- function(data) {
   library(doParallel)
   library(parallel)
   library(Orcs)
-  #library(rstudioapi)
-  
-  #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
   # load raster stack from data directory
   sen_ms <- stack("R/data/Sen_Muenster.grd")
