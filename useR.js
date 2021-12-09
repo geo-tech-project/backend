@@ -197,8 +197,10 @@ async function getData(request) {
         trainingData: {}
     }
     output.aoi = await getAoiTif(processedData.bottomLeftX, processedData.bottomLeftY, processedData.topRightX, processedData.topRightY, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
+    console.log("AOI TIF created successfully");
     if (processedData.haveTrainingData) {
         output.trainingData = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
+        console.log("Training data TIF created successfully");
     } else {
         output.trainingData = null;
     }

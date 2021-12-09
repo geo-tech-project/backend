@@ -117,7 +117,7 @@ stacRequest <- function(bbox, datetime, limit) {
 #             - cloudCoverageInPercentage (Float)
 #             - items found by the stac request
 createImageCollection <- function(desiredBands, cloudCoverageInPercentage, items){
-  # TODO : if(item$features == null) Schmeiße entssprechenden Fehler !!!
+  # TODO : if(item$features == null) Schmeisse entssprechenden Fehler !!!
   library(gdalcubes)
   s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
   return(s2_collection)
@@ -170,6 +170,8 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
     write_json_descr = FALSE,
     pack = NULL
   )
+  files <- list.files(path="./R/outputData/")
+  file.rename(paste("./R/outputData/",files[2],sep=""),"./R/outputData/trainingData.tif")
 }
 
 # Function that combines all prior functions to one function. It generates a satellite image as a tif file.
@@ -206,6 +208,12 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
 # parameters: - image collection (from createImageCollection function)
 #             - cube view (from createCubeView function)
 createTifFileFromAOI <- function(imageCollection,cubeView){
+  files <- list.files(path="./R/outputData/")
+  files
+  for (i in 1:length(files)) {
+    file.remove(paste("./R/outputData/",files[i],sep=""))
+    #unlink(paste("./R/outputData/",files[i],sep=""), recursive=TRUE)
+  }
   # Set mask for further cloud filtering
   S2.mask = image_mask("SCL", values = c(3,8,9))
   # Create raster cube
@@ -222,6 +230,9 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
     write_json_descr = FALSE,
     pack = NULL
   )
+  files <- list.files(path="./R/outputData/")
+  file.rename(paste("./R/outputData/",files[1],sep=""),"./R/outputData/aoi.tif")
+
 }
 
 # Function that combines all prior functions to one function. It generates a satellite image as a tif file.
@@ -267,11 +278,11 @@ plotTifFile <- function(filePath){
 ################################################################################
 
 # library(sf)
-# trainingDataPath = "./Trainingsdaten/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
+# trainingDataPath = "./R/Trainingsdaten/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
 # datetime = "2020-06-01/2021-06-30"
 # limit = 100
 # desiredBands = c("B02","B03","B04","SCL")
-# resolution = 400
+# resolution = 20
 # cloudCoverageInPercentage = 20
 
 ########################## Test for training data ##############################
@@ -279,7 +290,7 @@ plotTifFile <- function(filePath){
 
 # First set your working directory to your github 
 # getwd()
-# setwd("~/GitHub/backend/R")
+# setwd("~/GitHub/backend")
 # 
 # # Read the path to get the training data
 # trainingData = read_sf(trainingDataPath)
@@ -313,14 +324,14 @@ plotTifFile <- function(filePath){
 # generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 # 
 # # Plot the resulting tif file
-# plotTifFile("./outputData/trainingData_2020-06-01.tif")
+# plotTifFile("./R/outputData/trainingData.tif")
 
 ############################## Test for AOI ####################################
 ################################################################################
 
 # First set your working directory to your github 
 # getwd()
-# setwd("~/GitHub/backend/R")
+# setwd("~/GitHub/backend")
 # 
 # # Create bbox of coordinates of the AOI
 # bboxWGS84 <- getBBoxFromAOI(7,50,7.1,50.1)
@@ -347,11 +358,11 @@ plotTifFile <- function(filePath){
 # 
 # # Create tif file
 # createTifFileFromAOI(imageCollection, cubeView)
-# 
-# # Function to do all at once
+
+# Function to do all at once
 # generateSatelliteImageFromAOI(7,50,7.1,50.1, datetime, 100, desiredBands, resolution, cloudCoverageInPercentage)
-# 
-# # Plot the resulting tif file
-# plotTifFile("2021-05-01.tif")
+
+# Plot the resulting tif file
+# plotTifFile("./R/outputData/aoi.tif")
 
 
