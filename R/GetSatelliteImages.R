@@ -268,10 +268,10 @@ plotTifFile <- function(filePath){
 
 # library(sf)
 # trainingDataPath = "./Trainingsdaten/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
-# datetime = "2019-06-01/2021-06-30"
+# datetime = "2020-06-01/2021-06-30"
 # limit = 100
 # desiredBands = c("B02","B03","B04","SCL")
-# resolution = 10
+# resolution = 400
 # cloudCoverageInPercentage = 20
 
 ########################## Test for training data ##############################
@@ -313,7 +313,7 @@ plotTifFile <- function(filePath){
 # generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 # 
 # # Plot the resulting tif file
-# plotTifFile("2021-06-01.tif")
+# plotTifFile("./outputData/trainingData_2020-06-01.tif")
 
 ############################## Test for AOI ####################################
 ################################################################################
