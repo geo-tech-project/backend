@@ -170,6 +170,8 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
     write_json_descr = FALSE,
     pack = NULL
   )
+  files <- list.files(path="./R/outputData/")
+  file.rename(paste("./R/outputData/",files[2],sep=""),"./R/outputData/trainingData.tif")
 }
 
 # Function that combines all prior functions to one function. It generates a satellite image as a tif file.
@@ -222,6 +224,9 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
     write_json_descr = FALSE,
     pack = NULL
   )
+  files <- list.files(path="./R/outputData/")
+  file.rename(paste("./R/outputData/",files[1],sep=""),"./R/outputData/aoi.tif")
+
 }
 
 # Function that combines all prior functions to one function. It generates a satellite image as a tif file.
@@ -265,7 +270,7 @@ plotTifFile <- function(filePath){
 
 ########################### PARAMETER for tests ################################
 ################################################################################
-
+# 
 # library(sf)
 # trainingDataPath = "./Trainingsdaten/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
 # datetime = "2020-06-01/2021-06-30"
@@ -320,8 +325,8 @@ plotTifFile <- function(filePath){
 
 # First set your working directory to your github 
 # getwd()
-# setwd("~/GitHub/backend/R")
-# 
+# setwd("~/GitHub/backend")
+
 # # Create bbox of coordinates of the AOI
 # bboxWGS84 <- getBBoxFromAOI(7,50,7.1,50.1)
 # bboxWGS84
@@ -347,11 +352,11 @@ plotTifFile <- function(filePath){
 # 
 # # Create tif file
 # createTifFileFromAOI(imageCollection, cubeView)
-# 
-# # Function to do all at once
+
+# Function to do all at once
 # generateSatelliteImageFromAOI(7,50,7.1,50.1, datetime, 100, desiredBands, resolution, cloudCoverageInPercentage)
-# 
-# # Plot the resulting tif file
-# plotTifFile("2021-05-01.tif")
+
+# Plot the resulting tif file
+plotTifFile("./R/outputData/aoi.tif")
 
 
