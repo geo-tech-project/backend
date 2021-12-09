@@ -52,7 +52,7 @@ app.get('/stack/:name', (req, res, next) => {
 
 app.get('/rundemo', (req, res, next) => {
     console.log('calculation demo..');
-    callMethodAsync("ML_AOA.R", "calculateAOA", ["2"]).then((result) => {
+    callMethodAsync("./R/DEMO.R", "rundemo", [""]).then((result) => {
         console.log(result);
         res.send(result);
     }).catch((error) => {
@@ -101,5 +101,5 @@ app.post('/upload', upload.single('file'), function (req, res) {
 });
 
 app.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`)
+    console.log(`Example app listening on port http://localhost:${PORT}`)
 });
