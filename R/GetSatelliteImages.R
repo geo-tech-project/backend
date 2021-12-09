@@ -117,7 +117,7 @@ stacRequest <- function(bbox, datetime, limit) {
 #             - cloudCoverageInPercentage (Float)
 #             - items found by the stac request
 createImageCollection <- function(desiredBands, cloudCoverageInPercentage, items){
-  # TODO : if(item$features == null) Schmeiße entssprechenden Fehler !!!
+  # TODO : if(item$features == null) Schmeisse entssprechenden Fehler !!!
   library(gdalcubes)
   s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
   return(s2_collection)
