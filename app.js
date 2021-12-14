@@ -53,7 +53,7 @@ app.get('/stack/:name', (req, res, next) => {
 app.get('/rundemo', (req, res, next) => {
     console.log('calculation demo..');
     console.log(__dirname);
-    callMethodAsync("/R/DEMO.R", "rundemo", [""]).then((result) => {
+    callMethodAsync(__dirname + "/R/DEMO.R", "rundemo", [""]).then((result) => {
         console.log(result);
         res.send(result);
     }).catch((error) => {
@@ -67,10 +67,10 @@ app.get("/async", (req, res, next) => {
     console.log("testing asyncronously...")
     // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
     //let trees = 75;
-    callMethodAsync("./R/ML_AOA.R", "training", {algorithm: 'rf',data: '[3]'}) //Hyperparameter für die Algorithmen
+    callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {algorithm: 'rf',data: '[3]'}) //Hyperparameter für die Algorithmen
     .then((result) => {
         console.log(result)
-        callMethodAsync("./R/ML_AOA.R", "classifyAndAOA", ["success"])
+        callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
         .then((result) => {
             console.log(result);
             res.send('success')
