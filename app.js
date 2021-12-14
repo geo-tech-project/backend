@@ -52,7 +52,8 @@ app.get('/stack/:name', (req, res, next) => {
 
 app.get('/rundemo', (req, res, next) => {
     console.log('calculation demo..');
-    callMethodAsync("DEMO.R", "rundemo", [""]).then((result) => {
+    console.log(__dirname);
+    callMethodAsync("/R/DEMO.R", "rundemo", [""]).then((result) => {
         console.log(result);
         res.send(result);
     }).catch((error) => {
