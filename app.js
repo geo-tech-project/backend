@@ -36,7 +36,9 @@ app.post('/start', async (req, res, next) => {
     /**
      * Formatting all needed incomingData in the way the getData function needs them.
      */
+    console.log(req.body);
     let response = await getData(req.body);
+    console.log(response);
     res.send(response);
 })
 
