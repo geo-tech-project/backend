@@ -27,6 +27,10 @@
   # Outputs
   #########
   # -Trained model as .rds file
+algorithm = 'rf'
+trainingDataPath = './public/uploads/trainingsdaten_koeln_4326.gpkg'
+hyperparameter = c(2)
+
 
 
 training <- function(algorithm, trainingDataPath, hyperparameter) {
@@ -42,11 +46,11 @@ training <- function(algorithm, trainingDataPath, hyperparameter) {
   library(jsonlite)
   
   # load raster stack from data directory
-  stack <- stack("R/outpuData/trainingData.tif")
+  stack <- stack("R/outputData/trainingData.tif")
   
   # load training data
   trainSites <- read_sf(trainingDataPath)
-  #trainSites <- read_sf(data)
+  trainSites <- st_transform(trainSites, crs = crs(stack))
   
   # Ergänze PolygonID-Spalte falls nicht schon vorhanden, um später mit extrahierten Pixeln zu mergen
   trainSites$PolygonID <- 1:nrow(trainSites)
@@ -57,14 +61,30 @@ training <- function(algorithm, trainingDataPath, hyperparameter) {
   # Merge extrahierte Pixel mit den zusätzlichen Informationen aus den 
   extr <- merge(extr_pixel, trainSites, by.x="ID", by.y="PolygonID")
   
-  # 50% der Pixel eines jeden Polygons für das Modeltraining extrahieren
-  set.seed(100)
-  trainids <- createDataPartition(extr$ID,list=FALSE,p=0.05)
-  trainDat <- extr[trainids,]
-  
   # Prädiktoren und Response festlegen
   predictors <- names(stack)
   response <- "Label"
+  
+  
+  # 50% der Pixel eines jeden Polygons für das Modeltraining extrahieren
+  set.seed(100)
+  trainids <- createDataPartition(extr$ID,list=FALSE,p=0.5)
+  trainDat <- extr[trainids,]
+  trainDat <- trainDat[complete.cases(trainDat[,predictors]),]
+  
+  
+  # trainIDs <- createDataPartition(extr$ID,p=0.1 , list=FALSE)
+  # trainIDs
+  # 
+  # trainData <- extr[trainIDs,]
+  # 
+  # # Sicherstellen das kein NA in Prädiktoren enthalten ist:
+  # trainData <- trainData[complete.cases(trainData[,predictors]),]
+  # trainData
+  
+  
+  
+  
   
   # Drei Folds für die Spatial-Cross-Validation im Modell Training definieren und traincontrol festlegen
   indices <- CreateSpacetimeFolds(trainDat,spacevar = "ID",k=3,class="Label")
@@ -78,7 +98,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter) {
       tune_grid <- expand.grid( mtry  = c(hyperparameter[1]))
   } else if (algorithm == 'svmRadial'){
       tune_grid <- expand.grid( sigma = c(hyperparameter[1]),
-                                C     = c(hyperparameter[2])  
+                                C     = c(hyperparameter[2])) 
   }
  # else if (algorithm == 'xgbTree') {
  #     tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
@@ -147,11 +167,12 @@ training <- function(algorithm, trainingDataPath, hyperparameter) {
   # -AOA
   # -Recommended training locations
 
+modelPath = "R/tempModel/model.RDS"
 
 classifyAndAOA <- function(modelPath) {
   
   # load packages
-  library(raster) 
+  library(raster)
   library(leafletR)
   library(CAST) 
   library(tmap)
