@@ -72,9 +72,6 @@ rundemo <- function(data) {
     AOA_polygonized <- rasterToPolygons(AOA$AOA, dissolve = TRUE)
     toGeoJSON(AOA_polygonized, "AOA_GeoJson", dest = "R/stack", lat.lon, overwrite=TRUE)
     
-    # print variable
-    data
-    
     # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
     x <- AOA$AOA@data@values
     furtherTrainAreas <- rasterToPolygons(AOA$AOA, fun = function(x) {x == 0}, dissolve = TRUE)
