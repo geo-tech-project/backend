@@ -29,7 +29,7 @@
   # -Trained model as .rds file
 
 
-training <- function(algorithm, data) {
+training <- function(algorithm, trainingDataPath, hyperparameter) {
 
 
   # load packages
@@ -42,17 +42,17 @@ training <- function(algorithm, data) {
   library(jsonlite)
   
   # load raster stack from data directory
-  sen_ms <- stack("R/data/Sen_Muenster.grd")
+  stack <- stack("R/outpuData/trainingData.tif")
   
   # load training data
-  trainSites <- read_sf("R/data/trainingsites_muenster.gpkg")
+  trainSites <- read_sf(trainingDataPath)
   #trainSites <- read_sf(data)
   
   # Ergänze PolygonID-Spalte falls nicht schon vorhanden, um später mit extrahierten Pixeln zu mergen
   trainSites$PolygonID <- 1:nrow(trainSites)
   
   # Extrahiere Pixel aus den Stack, die vollständig vom Polygon abgedeckt werden
-  extr_pixel <- extract(sen_ms, trainSites, df=TRUE)
+  extr_pixel <- extract(stack, trainSites, df=TRUE)
   
   # Merge extrahierte Pixel mit den zusätzlichen Informationen aus den 
   extr <- merge(extr_pixel, trainSites, by.x="ID", by.y="PolygonID")
@@ -63,7 +63,7 @@ training <- function(algorithm, data) {
   trainDat <- extr[trainids,]
   
   # Prädiktoren und Response festlegen
-  predictors <- names(sen_ms)
+  predictors <- names(stack)
   response <- "Label"
   
   # Drei Folds für die Spatial-Cross-Validation im Modell Training definieren und traincontrol festlegen
@@ -73,23 +73,22 @@ training <- function(algorithm, data) {
                        savePredictions = TRUE)
 
   #Erstellen eines Grids für die Hyperparameter des jeweiligen Algorithmus: 
-  hyperparameter <- fromJSON(data)
+  #hyperparameter <- fromJSON(data)
   if(algorithm == 'rf') {
       tune_grid <- expand.grid( mtry  = c(hyperparameter[1]))
-  } 
-  else if (algorithm == 'xgbTree') {
-      tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
-                                max_depth         = c(hyperparameter[2]),
-                                eta               = c(hyperparameter[3]),
-                                gamma             = c(hyperparameter[4]),
-                                colsample_bytree  = c(hyperparameter[5]),
-                                min_child_weight  = c(hyperparameter[6]),
-                                subsample         = c(hyperparameter[7]))
-  } 
-  else if (algorithm == 'svmRadial'){
+  } else if (algorithm == 'svmRadial'){
       tune_grid <- expand.grid( sigma = c(hyperparameter[1]),
-                                C     = c(hyperparameter[2]))  
+                                C     = c(hyperparameter[2])  
   }
+ # else if (algorithm == 'xgbTree') {
+ #     tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
+ #                               max_depth         = c(hyperparameter[2]),
+ #                               eta               = c(hyperparameter[3]),
+ #                               gamma             = c(hyperparameter[4]),
+ #                               colsample_bytree  = c(hyperparameter[5]),
+ #                               min_child_weight  = c(hyperparameter[6]),
+ #                               subsample         = c(hyperparameter[7]))
+ # } 
 
 
   
@@ -149,7 +148,7 @@ training <- function(algorithm, data) {
   # -Recommended training locations
 
 
-classifyAndAOA <- function(data) {
+classifyAndAOA <- function(modelPath) {
   
   # load packages
   library(raster) 
@@ -162,13 +161,13 @@ classifyAndAOA <- function(data) {
   library(Orcs)
 
   # load raster stack from data directory
-  sen_ms <- stack("R/data/Sen_Muenster.grd")
+  stack <- stack("R/outputData/aoi.tif")
 
   # load raster stack from data directory
-  model <- readRDS("R/tempModel/model.RDS")
+  model <- readRDS(modelPath)
   
   # prediction
-  prediction <- predict(sen_ms,model)
+  prediction <- predict(stack,model)
 
   # write prediction raster to tif in file directory
   writeRaster(prediction, "R/stack/prediction.tif", overwrite = TRUE)
@@ -178,7 +177,7 @@ classifyAndAOA <- function(data) {
   registerDoParallel(cl)
 
   # calculate AOA
-  AOA <- aoa(sen_ms,model,cl=cl)
+  AOA <- aoa(stack,model,cl=cl)
 
   # write prediction raster to tif in file directory
   writeRaster(AOA, "R/stack/aoa.tif", overwrite=TRUE)

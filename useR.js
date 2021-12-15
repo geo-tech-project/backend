@@ -19,6 +19,7 @@ const RESOLUTION = 400;
  * Hard coded parameter for the cloud coverage in percentage.
  */
 const CLOUD_COVERAGE_IN_PERCENTAGE = 20;
+
 /**
  * R package to execute R Files, commands and methods
  */
