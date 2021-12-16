@@ -20,7 +20,10 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
     try{
         output = R.callMethodAsync(rFilePath, "calssifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
     } catch {
-
+        output = {
+            message: "An Error in the R-Script occured", 
+            error: error
+        }        
     }
  }
 

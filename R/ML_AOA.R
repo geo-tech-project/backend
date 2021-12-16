@@ -27,9 +27,11 @@
   # Outputs
   #########
   # -Trained model as .rds file
+setwd("~/Documents/Studium/5. Semester/Geosoftware II/geo-tech-project/backend")
 algorithm = 'rf'
 trainingDataPath = './public/uploads/trainingsdaten_koeln_4326.gpkg'
 hyperparameter = c(2)
+desiredBands = c("B02", "B03", "B04", "SCL")
 
 
 
@@ -56,7 +58,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   # Ergänze PolygonID-Spalte falls nicht schon vorhanden, um später mit extrahierten Pixeln zu mergen
   trainSites$PolygonID <- 1:nrow(trainSites)
   
-  # Extrahiere Pixel aus den Stack, die vollständig vom Polygon abgedeckt werden
+  # Extrahiere Pixel aus den Stack, die vollständig (das Zentrum des Pixels wird abgedeckt) vom Polygon abgedeckt werden
   extr_pixel <- extract(stack, trainSites, df=TRUE)
   
   # Merge extrahierte Pixel mit den zusätzlichen Informationen aus den 
@@ -64,11 +66,11 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   
   # Prädiktoren und Response festlegen
   predictors <- names(stack)
+  predictors <- predictors[! predictors %in% c('SCL')]
   response <- "Label"
   
   
   # 50% der Pixel eines jeden Polygons für das Modeltraining extrahieren
-  set.seed(100)
   trainids <- createDataPartition(extr$ID,list=FALSE,p=0.5)
   trainDat <- extr[trainids,]
   trainDat <- trainDat[complete.cases(trainDat[,predictors]),]
@@ -114,7 +116,6 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 
   
   #Erstellen (Training) des Models
-  set.seed(100)
   model <- train(trainDat[,predictors],
                  trainDat[,response],
                  method=algorithm,
@@ -174,13 +175,14 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   
   # load packages
   library(raster)
-  library(leafletR)
   library(CAST) 
   library(tmap)
   library(latticeExtra)
   library(doParallel)
   library(parallel)
   library(Orcs)
+  library(sp)
+  library(geojson)
 
   # load raster stack from data directory
   stack <- stack("R/outputData/aoi.tif")
@@ -204,16 +206,16 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # write prediction raster to tif in file directory
   writeRaster(AOA, "R/stack/aoa.tif", overwrite=TRUE)
- 
-  # print variable
-  data
   
   # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
   x <- AOA$AOA@data@values
   furtherTrainAreas <- rasterToPolygons(AOA$AOA, fun = function(x) {x == 0}, dissolve = TRUE)
+  furtherTrainAreas <- spTransform(furtherTrainAreas, CRS("+init=epsg:4326"))
+  
+  furtherTrainAreas <- spsample(furtherTrainAreas, n = 5, type = "random")
   
   # Saves the calculated AOnA to a GeoJSON-file
-  toGeoJSON(furtherTrainAreas, "furtherTrainAreas", dest = "R/trainAreas", lat.lon, overwrite=TRUE)
-
+  furtherTrainAreasGeoJSON <- as.geojson(furtherTrainAreas)
+  geo_write(furtherTrainAreasGeoJSON, "R/trainAreas/furtherTrainAreas.geojson")
 }
 
