@@ -63,7 +63,6 @@ function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, de
   * @returns The processed data as an object.
   */
 function processInputData(data) {
-    data.channels.push('SCL');
     var out = {
         option: data.option,
         filePath: './public/uploads/' + data.filename, 
