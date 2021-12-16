@@ -33,7 +33,7 @@ hyperparameter = c(2)
 
 
 
-training <- function(algorithm, trainingDataPath, hyperparameter) {
+training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) {
 
 
   # load packages
@@ -47,6 +47,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter) {
   
   # load raster stack from data directory
   stack <- stack("R/outputData/trainingData.tif")
+  names(stack) <-  desiredBands
   
   # load training data
   trainSites <- read_sf(trainingDataPath)
@@ -169,7 +170,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter) {
 
 modelPath = "R/tempModel/model.RDS"
 
-classifyAndAOA <- function(modelPath) {
+classifyAndAOA <- function(modelPath, desiredBands) {
   
   # load packages
   library(raster)
@@ -183,6 +184,7 @@ classifyAndAOA <- function(modelPath) {
 
   # load raster stack from data directory
   stack <- stack("R/outputData/aoi.tif")
+  names(stack) <- desiredBands
 
   # load raster stack from data directory
   model <- readRDS(modelPath)

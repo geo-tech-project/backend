@@ -13,24 +13,24 @@
  const rFilePath = './R/ML_AOA.R';
 
 
-function calculateAOAwithGivenModel(modelPath) {
+function calculateAOAwithGivenModel(modelPath, desiredBands) {
     
     let output;
     
     try{
-        output = R.callMethodAsync(rFilePath, "calssifyAndAOA", {modelPath: modelPath})    
+        output = R.callMethodAsync(rFilePath, "calssifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
     } catch {
 
     }
  }
 
  
-function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter) { //chosen_hyperparameter
+function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands) { //chosen_hyperparameter
     let output = {}
      try {
-        output = callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter}).then((result) => {
+        output = callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands}).then((result) => {
                 console.log(result)
-                callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/tempModel/model.RDS"}).then((result) => {
+                callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/tempModel/model.RDS", desiredBands: desiredBands}).then((result) => {
                     //modelpath = "R/tempModel/model.RDS"
                     console.log(result)
                 }).catch((error) => {
@@ -60,9 +60,11 @@ function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter) { 
   * @returns The processed data as an object.
   */
 function processInputData(data) {
+    data.channels.push('SCL');
     var out = {
         option: data.option,
         filePath: './public/uploads/' + data.filename, 
+        desiredBands: data.channels
     }
     if(data.option == 'data') {
         if(data.algorithm = "rf") {
@@ -101,9 +103,9 @@ function processInputData(data) {
         message: {}
     }
     if (processedData.option == 'data') {
-        output.message = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter)
+        output.message = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands)
     } else if (processedData.option == 'model') {
-        output.message = await calculateAOAwithGivenModel(processedData.filePath)
+        output.message = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
     }
     
 }
