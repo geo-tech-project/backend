@@ -109,7 +109,7 @@ function processInputData(data) {
     } else if (processedData.option == 'model') {
         output.message = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
     }
-    
+    return output;
 }
 
 
