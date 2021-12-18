@@ -189,6 +189,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   
   # prediction
   prediction <- predict(stack,model)
+  print(prediction)
 
   # reproject to visualise in leaflet
   reprojectedPrediction <- projectRaster(prediction, crs = proj4)
