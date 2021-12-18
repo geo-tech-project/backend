@@ -173,6 +173,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(Orcs)
   library(sp)
   library(geojson)
+  library(rjson)
 
   # load raster stack from data directory
   stack <- stack("R/outputData/aoi.tif")
@@ -180,9 +181,15 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # load raster stack from data directory
   model <- readRDS(modelPath)
+
+  # proj string for reprojection
+  proj4 <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
   
   # prediction
   prediction <- predict(stack,model)
+
+  # reproject to visualise in leaflet
+  prediction <- projectRaster(prediction, crs = proj4)
 
   # write prediction raster to tif in file directory
   writeRaster(prediction, "R/stack/prediction.tif", overwrite = TRUE)
@@ -193,6 +200,9 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # calculate AOA
   AOA <- aoa(stack,model,cl=cl)
+
+  # reproject to visualise in leaflet
+  AOA <- projectRaster(AOA, crs = proj4)
 
   # write prediction raster to tif in file directory
   writeRaster(AOA, "R/stack/aoa.tif", overwrite=TRUE)
@@ -207,6 +217,16 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   # Saves the calculated AOnA to a GeoJSON-file
   furtherTrainAreasGeoJSON <- as.geojson(furtherTrainAreas)
   geo_write(furtherTrainAreasGeoJSON, "R/trainAreas/furtherTrainAreas.geojson")
+
+  vector <- c()
+
+  for(class in model$finalModel$classes) {
+    vector <- c(vector, class)
+  }
+
+  json <- toJSON(vector)
+
+  write(json, "R/stack/classes.json")
 
   print('success')
 }
