@@ -17,5 +17,12 @@
       <Category>See</Category>
       <Category>Stadt</Category>
     </CategoryNames>
+    <Metadata>
+      <MDI key="STATISTICS_MAXIMUM">14</MDI>
+      <MDI key="STATISTICS_MEAN">6.3376123234917</MDI>
+      <MDI key="STATISTICS_MINIMUM">1</MDI>
+      <MDI key="STATISTICS_STDDEV">4.0801671224364</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">97.94</MDI>
+    </Metadata>
   </PAMRasterBand>
 </PAMDataset>
