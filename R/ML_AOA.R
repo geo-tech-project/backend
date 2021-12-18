@@ -189,10 +189,11 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   prediction <- predict(stack,model)
 
   # reproject to visualise in leaflet
-  prediction <- projectRaster(prediction, crs = proj4)
+  reprojectedPrediction <- projectRaster(prediction, crs = proj4)
 
   # write prediction raster to tif in file directory
   writeRaster(prediction, "R/stack/prediction.tif", overwrite = TRUE)
+  writeRaster(reprojectedPrediction, "R/stack/reprojectedPrediction.tif", overwrite = TRUE)
   
   # parallelization
   cl <- makeCluster(4)
@@ -202,10 +203,11 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   AOA <- aoa(stack,model,cl=cl)
 
   # reproject to visualise in leaflet
-  AOA <- projectRaster(AOA, crs = proj4)
+  reprojectedAOA <- projectRaster(AOA, crs = proj4)
 
   # write prediction raster to tif in file directory
   writeRaster(AOA, "R/stack/aoa.tif", overwrite=TRUE)
+  writeRaster(AOA, "R/stack/reprojectedAOA.tif", overwrite=TRUE)
   
   # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
   x <- AOA$AOA@data@values
