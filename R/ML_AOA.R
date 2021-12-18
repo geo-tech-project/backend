@@ -193,6 +193,10 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   # reproject to visualise in leaflet
   reprojectedPrediction <- projectRaster(prediction, crs = proj4)
 
+  proj4 <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
+
+  prediction <- projectRaster(prediction, crs = proj4)
+
   # write prediction raster to tif in file directory
   writeRaster(prediction, "R/stack/prediction.tif", overwrite = TRUE)
   writeRaster(reprojectedPrediction, "R/stack/reprojectedPrediction.tif", overwrite = TRUE)
@@ -206,6 +210,8 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # reproject to visualise in leaflet
   reprojectedAOA <- projectRaster(AOA, crs = proj4)
+
+  AOA <- projectRaster(AOA, crs = proj4)
 
   # write prediction raster to tif in file directory
   writeRaster(AOA$AOA, "R/stack/aoa.tif", overwrite=TRUE)
