@@ -2,13 +2,27 @@
   <PAMRasterBand band="1">
     <CategoryNames>
       <Category></Category>
-      <Category>Fallow field</Category>
-      <Category>Grassland</Category>
-      <Category>Industrial</Category>
-      <Category>Inland water</Category>
-      <Category>Mixed forest</Category>
-      <Category>Planted field</Category>
-      <Category>Urban</Category>
+      <Category>Acker_bepflanzt</Category>
+      <Category>Acker_unbepflanzt</Category>
+      <Category>Dorf</Category>
+      <Category>Fließgewässer</Category>
+      <Category>Gleis</Category>
+      <Category>Grünland</Category>
+      <Category>Hafen</Category>
+      <Category>Industrie</Category>
+      <Category>Laubwald</Category>
+      <Category>Mischwald</Category>
+      <Category>Nadelwald</Category>
+      <Category>Schrebergarten</Category>
+      <Category>See</Category>
+      <Category>Stadt</Category>
     </CategoryNames>
+    <Metadata>
+      <MDI key="STATISTICS_MAXIMUM">14</MDI>
+      <MDI key="STATISTICS_MEAN">6.3376123234917</MDI>
+      <MDI key="STATISTICS_MINIMUM">1</MDI>
+      <MDI key="STATISTICS_STDDEV">4.0801671224364</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">97.94</MDI>
+    </Metadata>
   </PAMRasterBand>
 </PAMDataset>

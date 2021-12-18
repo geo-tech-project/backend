@@ -5,6 +5,9 @@ const bodyParser = require('body-parser');
 const {
     getData
 } = require('./useR');
+const {
+    calculateAOA
+} = require('./useR_ML_AOA');
 var cors = require('cors');
 const R = require('r-integration');
 
@@ -37,7 +40,10 @@ app.post('/start', async (req, res, next) => {
      * Formatting all needed incomingData in the way the getData function needs them.
      */
     console.log(req.body);
-    let response = await getData(req.body);
+    let response = {}
+    response.stac = await getData(req.body);
+    response.aoa = await calculateAOA(req.body);
+    console.log(response);
     res.send(response);
 })
 
