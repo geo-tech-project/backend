@@ -209,7 +209,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # write prediction raster to tif in file directory
   writeRaster(AOA$AOA, "R/stack/aoa.tif", overwrite=TRUE)
-  writeRaster(reprjectedAOA$AOA, "R/stack/reprojectedAOA.tif", overwrite=TRUE)
+  writeRaster(reprojectedAOA$AOA, "R/stack/reprojectedAOA.tif", overwrite=TRUE)
   
   # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
   x <- AOA$AOA@data@values
