@@ -36,6 +36,7 @@ app.post('/start', async (req, res, next) => {
     /**
      * Formatting all needed incomingData in the way the getData function needs them.
      */
+    console.log(req.body);
     let response = await getData(req.body);
     res.send(response);
 })
@@ -47,12 +48,15 @@ app.get('/file/:name', (req, res, next) => {
 
 // route to return uploaded file
 app.get('/stack/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './public/stack/', req.params.name));
+    res.sendFile(path.join(__dirname, './R/stack/', req.params.name));
+})
+
+app.get('/json', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './R/stack/classes.json'));
 })
 
 app.get('/rundemo', (req, res, next) => {
     console.log('calculation demo..');
-    console.log(__dirname);
     callMethodAsync(__dirname + "/R/DEMO.R", "rundemo", [""]).then((result) => {
         console.log(result);
         res.send(result);
