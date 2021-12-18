@@ -160,15 +160,21 @@ classifyAndAOA <- function(data) {
   library(doParallel)
   library(parallel)
   library(Orcs)
+  library(rjson)
 
   # load raster stack from data directory
   sen_ms <- stack("R/data/Sen_Muenster.grd")
 
   # load raster stack from data directory
   model <- readRDS("R/tempModel/model.RDS")
+
   
   # prediction
   prediction <- predict(sen_ms,model)
+
+  proj4 <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
+
+  prediction <- projectRaster(prediction, crs = proj4)
 
   # write prediction raster to tif in file directory
   writeRaster(prediction, "R/stack/prediction.tif", overwrite = TRUE)
@@ -180,18 +186,19 @@ classifyAndAOA <- function(data) {
   # calculate AOA
   AOA <- aoa(sen_ms,model,cl=cl)
 
-  # write prediction raster to tif in file directory
-  writeRaster(AOA, "R/stack/aoa.tif", overwrite=TRUE)
- 
-  # print variable
-  data
-  
-  # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
-  x <- AOA$AOA@data@values
-  furtherTrainAreas <- rasterToPolygons(AOA$AOA, fun = function(x) {x == 0}, dissolve = TRUE)
-  
-  # Saves the calculated AOnA to a GeoJSON-file
-  toGeoJSON(furtherTrainAreas, "furtherTrainAreas", dest = "R/trainAreas", lat.lon, overwrite=TRUE)
+  AOA <- projectRaster(AOA, crs = proj4)
 
+  # write prediction raster to tif in file directory
+  writeRaster(AOA$AOA, "R/stack/aoa.tif", overwrite=TRUE)
+
+  vector <- c()
+
+  for(class in model$finalModel$classes) {
+    vector <- c(vector, class)
+  }
+
+  json <- toJSON(vector)
+
+  write(json, "R/stack/classes.json")
 }
 
