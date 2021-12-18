@@ -160,6 +160,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 # -Recommended training locations
 
 # modelPath = "R/tempModel/model.RDS"
+# desiredBands = c("B02", "B03", "B04", "SCL")
 
 classifyAndAOA <- function(modelPath, desiredBands) {
   
@@ -172,6 +173,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(parallel)
   library(Orcs)
   library(sp)
+  library(rgeos)
   library(geojson)
   library(rjson)
 
@@ -205,27 +207,25 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   AOA <- projectRaster(AOA, crs = proj4)
 
   # write prediction raster to tif in file directory
-  writeRaster(AOA, "R/stack/aoa.tif", overwrite=TRUE)
+  writeRaster(AOA$AOA, "R/stack/aoa.tif", overwrite=TRUE)
   
   # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
   x <- AOA$AOA@data@values
   furtherTrainAreas <- rasterToPolygons(AOA$AOA, fun = function(x) {x == 0}, dissolve = TRUE)
   furtherTrainAreas <- spTransform(furtherTrainAreas, CRS("+init=epsg:4326"))
   
-  furtherTrainAreas <- spsample(furtherTrainAreas, n = 5, type = "random")
+  furtherTrainAreas <- spsample(furtherTrainAreas, n = 30, type = "random")
   
   # Saves the calculated AOnA to a GeoJSON-file
   furtherTrainAreasGeoJSON <- as.geojson(furtherTrainAreas)
   geo_write(furtherTrainAreasGeoJSON, "R/trainAreas/furtherTrainAreas.geojson")
 
+  # save all classes of prediction to json file for web usage
   vector <- c()
-
   for(class in model$finalModel$classes) {
     vector <- c(vector, class)
   }
-
-  json <- toJSON(vector)
-
+  json <- rjson::toJSON(vector)
   write(json, "R/stack/classes.json")
 
   print('success')
