@@ -27,9 +27,10 @@
 # Outputs
 #########
 # -Trained model as .rds file
+
 # setwd("~/Documents/Studium/5. Semester/Geosoftware II/geo-tech-project/backend")
 # algorithm = 'rf'
-# trainingDataPath = './public/uploads/trainingsdaten_koeln_4326.gpkg'
+# trainingDataPath = './public/uploads/trainingsdaten_muenster_32632.gpkg'
 # hyperparameter = c(2)
 # desiredBands = c("B02", "B03", "B04", "SCL")
 
@@ -71,7 +72,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   
   
   # 50% der Pixel eines jeden Polygons für das Modeltraining extrahieren
-  trainids <- createDataPartition(extr$ID,list=FALSE,p=0.5)
+  trainids <- createDataPartition(extr$ID,list=FALSE,p=1)
   trainDat <- extr[trainids,]
 
   # Sicherstellen das kein NA in Prädiktoren enthalten ist:
@@ -116,6 +117,10 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
                  #importance=TRUE,
                  #ntree=trees)
   
+
+  files <- list.files(path="./R/model/")
+  file.remove(paste("./R/model/",files[1],sep=""))
+
   saveRDS(model, file="R/model/model.RDS")
   
 }
@@ -159,7 +164,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 # -AOA
 # -Recommended training locations
 
-# modelPath = "R/tempModel/model.RDS"
+# modelPath = "R/model/model.RDS"
 # desiredBands = c("B02", "B03", "B04", "SCL")
 
 classifyAndAOA <- function(modelPath, desiredBands) {
@@ -177,15 +182,17 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(geojson)
   library(rjson)
 
+  files <- list.files(path="./R/prediction_and_aoa/")
+  for (i in 1:length(files)) {
+    file.remove(paste("./R/prediction_and_aoa/",files[i],sep=""))
+  }
+
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/aoi.tif")
   names(stack) <- desiredBands
 
   # load raster stack from data directory
   model <- readRDS(modelPath)
-
-  # proj string for reprojection
-  proj4 <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
   
   # prediction
   prediction <- predict(stack,model)
@@ -209,6 +216,9 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   furtherTrainAreas <- spTransform(furtherTrainAreas, CRS("+init=epsg:4326"))
   
   furtherTrainAreas <- spsample(furtherTrainAreas, n = 30, type = "random")
+  
+  files <- list.files(path="./R/further_train_areas/")
+  file.remove(paste("./R/further_train_areas/",files[1],sep=""))
   
   # Saves the calculated AOnA to a GeoJSON-file
   furtherTrainAreasGeoJSON <- as.geojson(furtherTrainAreas)
