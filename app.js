@@ -52,13 +52,13 @@ app.get('/file/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
 
-// route to return uploaded file
-app.get('/stack/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/stack/', req.params.name));
+// route to return stac
+app.get('/predictionaoa/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './R/prediction_and_aoa/', req.params.name));
 })
 
 app.get('/json', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/stack/classes.json'));
+    res.sendFile(path.join(__dirname, './R/prediction_and_aoa/classes.json'));
 })
 
 app.get('/rundemo', (req, res, next) => {
