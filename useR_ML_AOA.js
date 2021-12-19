@@ -31,10 +31,10 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
 function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands) { //chosen_hyperparameter
     let output = {}
      try {
-        output = callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands}).then((result) => {
-                console.log(result)
+        callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands}).then((result) => {
+                output.model = result;
                 callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands}).then((result) => {
-                    console.log(result)
+                    output.classifyAndAOA = result;
                 }).catch((error) => {
                     console.error(error);
                 })
@@ -100,13 +100,13 @@ function processInputData(data) {
  async function calculateAOA(request) {
 
     let processedData = processInputData(request);
-    let output = {
-        message: {}
-    }
+    let output = {}
     if (processedData.option == 'data') {
         output.message = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands)
+        console.log("Model, prediction and AOA created successfully")
     } else if (processedData.option == 'model') {
         output.message = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
+        console.log("Prediction and AOA created successfully")
     }
     return output;
 }

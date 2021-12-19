@@ -122,7 +122,8 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   file.remove(paste("./R/model/",files[1],sep=""))
 
   saveRDS(model, file="R/model/model.RDS")
-  
+
+  print('Model was created successfully')  
 }
 
 
@@ -232,6 +233,6 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   json <- rjson::toJSON(vector)
   write(json, "R/prediction_and_aoa/classes.json")
 
-  print('success')
+  print('Calculation of prediction and AOA was successfull')
 }
 

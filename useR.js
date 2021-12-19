@@ -172,7 +172,6 @@ function processInputData(data) {
     out.datetime = data.startDate.substring(0, 10) + '/' + data.endDate.substring(0, 10);
     let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
-    console.log(out);
     return out;
 }
 
