@@ -251,13 +251,13 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   bboxUTM <- transformBBOXcrsToUTM(bboxWGS84)
   # Querying images with rstac
   items = stacRequest(bboxUTM, datetime, limit)
-  print(items)
+  # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
-  print(imageCollection)
+  # print(imageCollection)
   # Creating the cube view
   cubeView = createCubeView(bboxUTM, resolution, datetime)
-  print(cubeView)
+  # print(cubeView)
   # Parallel computing
   gdalcubes_options(threads = 16)
   # Create tif file
