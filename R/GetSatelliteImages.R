@@ -161,7 +161,7 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
   #print(sentinel)
   write_tif(
     sentinel,
-    dir = "./R/outputData",
+    dir = "./R/processed_sentinel_images",
     prefix = 'trainingData_',
     overviews = FALSE,
     COG = TRUE,
@@ -170,8 +170,8 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
     write_json_descr = FALSE,
     pack = NULL
   )
-  files <- list.files(path="./R/outputData/")
-  file.rename(paste("./R/outputData/",files[2],sep=""),"./R/outputData/trainingData.tif")
+  files <- list.files(path="./R/processed_sentinel_images/")
+  file.rename(paste("./R/processed_sentinel_images/",files[2],sep=""),"./R/processed_sentinel_images/trainingData.tif")
 }
 
 # Function that combines all prior functions to one function. It generates a satellite image as a tif file.
@@ -208,11 +208,10 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
 # parameters: - image collection (from createImageCollection function)
 #             - cube view (from createCubeView function)
 createTifFileFromAOI <- function(imageCollection,cubeView){
-  files <- list.files(path="./R/outputData/")
+  files <- list.files(path="./R/processed_sentinel_images/")
   files
   for (i in 1:length(files)) {
-    file.remove(paste("./R/outputData/",files[i],sep=""))
-    #unlink(paste("./R/outputData/",files[i],sep=""), recursive=TRUE)
+    file.remove(paste("./R/processed_sentinel_images/",files[i],sep=""))
   }
   # Set mask for further cloud filtering
   S2.mask = image_mask("SCL", values = c(3,8,9))
@@ -221,7 +220,7 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
   #print(sentinel)
   write_tif(
     sentinel,
-    dir = "./R/outputData",
+    dir = "./R/processed_sentinel_images",
     prefix = "aoi_",
     overviews = FALSE,
     COG = TRUE,
@@ -230,8 +229,8 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
     write_json_descr = FALSE,
     pack = NULL
   )
-  files <- list.files(path="./R/outputData/")
-  file.rename(paste("./R/outputData/",files[1],sep=""),"./R/outputData/aoi.tif")
+  files <- list.files(path="./R/processed_sentinel_images/")
+  file.rename(paste("./R/processed_sentinel_images/",files[1],sep=""),"./R/processed_sentinel_images/aoi.tif")
 
 }
 
@@ -278,7 +277,7 @@ plotTifFile <- function(filePath){
 ################################################################################
 
 # library(sf)
-# trainingDataPath = "./R/Trainingsdaten/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
+# trainingDataPath = "./R/training_data/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
 # datetime = "2020-06-01/2021-06-30"
 # limit = 100
 # desiredBands = c("B02","B03","B04","SCL")
@@ -324,7 +323,7 @@ plotTifFile <- function(filePath){
 # generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 # 
 # # Plot the resulting tif file
-# plotTifFile("./R/outputData/trainingData.tif")
+# plotTifFile("./R/processed_sentinel_images/trainingData.tif")
 
 ############################## Test for AOI ####################################
 ################################################################################
@@ -363,6 +362,6 @@ plotTifFile <- function(filePath){
 # generateSatelliteImageFromAOI(7,50,7.1,50.1, datetime, 100, desiredBands, resolution, cloudCoverageInPercentage)
 
 # Plot the resulting tif file
-# plotTifFile("./R/outputData/aoi.tif")
+# plotTifFile("./R/processed_sentinel_images/aoi.tif")
 
 

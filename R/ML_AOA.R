@@ -48,7 +48,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   library(jsonlite)
   
   # load raster stack from data directory
-  stack <- stack("R/outputData/trainingData.tif")
+  stack <- stack("R/processed_sentinel_images/trainingData.tif")
   names(stack) <-  desiredBands
   
   # load training data
@@ -116,7 +116,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
                  #importance=TRUE,
                  #ntree=trees)
   
-  saveRDS(model, file="R/tempModel/model.RDS")
+  saveRDS(model, file="R/model/model.RDS")
   
 }
 
@@ -178,7 +178,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(rjson)
 
   # load raster stack from data directory
-  stack <- stack("R/outputData/aoi.tif")
+  stack <- stack("R/processed_sentinel_images/aoi.tif")
   names(stack) <- desiredBands
 
   # load raster stack from data directory
@@ -191,7 +191,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   prediction <- predict(stack,model)
 
   # write prediction raster to tif in file directory
-  writeRaster(prediction, "R/stack/prediction.tif", overwrite = TRUE)
+  writeRaster(prediction, "R/prediction_and_aoa/prediction.tif", overwrite = TRUE)
   
   # parallelization
   cl <- makeCluster(4)
@@ -201,7 +201,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   AOA <- aoa(stack,model,cl=cl)
 
   # write prediction raster to tif in file directory
-  writeRaster(AOA$AOA, "R/stack/aoa.tif", overwrite=TRUE)
+  writeRaster(AOA$AOA, "R/prediction_and_aoa/aoa.tif", overwrite=TRUE)
   
   # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
   x <- AOA$AOA@data@values
@@ -212,7 +212,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   
   # Saves the calculated AOnA to a GeoJSON-file
   furtherTrainAreasGeoJSON <- as.geojson(furtherTrainAreas)
-  geo_write(furtherTrainAreasGeoJSON, "R/trainAreas/furtherTrainAreas.geojson")
+  geo_write(furtherTrainAreasGeoJSON, "R/further_train_areas/furtherTrainAreas.geojson")
 
   # save all classes of prediction to json file for web usage
   vector <- c()
@@ -220,7 +220,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
     vector <- c(vector, class)
   }
   json <- rjson::toJSON(vector)
-  write(json, "R/stack/classes.json")
+  write(json, "R/prediction_and_aoa/classes.json")
 
   print('success')
 }

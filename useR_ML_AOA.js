@@ -33,8 +33,7 @@ function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, de
      try {
         output = callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands}).then((result) => {
                 console.log(result)
-                callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/tempModel/model.RDS", desiredBands: desiredBands}).then((result) => {
-                    //modelpath = "R/tempModel/model.RDS"
+                callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands}).then((result) => {
                     console.log(result)
                 }).catch((error) => {
                     console.error(error);
