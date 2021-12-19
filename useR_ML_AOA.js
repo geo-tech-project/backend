@@ -32,9 +32,9 @@ function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, de
     let output = {}
      try {
         callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands}).then((result) => {
-                output.model = result;
+                output.model = result[0];
                 callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands}).then((result) => {
-                    output.classifyAndAOA = result;
+                    output.classifyAndAOA = result[0];
                 }).catch((error) => {
                     console.error(error);
                 })
@@ -76,7 +76,6 @@ function processInputData(data) {
             out.hyperparameter = [data.sigma, data.cost]
         }
     }
-    console.log(out);
     return out;
 }
 
