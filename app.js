@@ -52,9 +52,24 @@ app.get('/file/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
 
-// route to return stac
+// Prediction and AOA
 app.get('/predictionaoa/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './R/prediction_and_aoa/', req.params.name));
+})
+
+// Sentinel images
+app.get('/processedsentinelimages/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './R/processed_sentinel_images/', req.params.name));
+})
+
+// Further train areas
+app.get('/furthertrainareas/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './R/further_train_areas/', req.params.name));
+})
+
+// training polygons
+app.get('/trainingdata/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
 
 app.get('/json', (req, res, next) => {
