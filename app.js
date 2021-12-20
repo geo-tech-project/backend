@@ -51,6 +51,9 @@ app.post('/start', async (req, res, next) => {
 app.get('/file/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
+app.get('/model/:name', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './R/model/', req.params.name));
+})
 
 // Prediction and AOA
 app.get('/predictionaoa/:name', (req, res, next) => {
