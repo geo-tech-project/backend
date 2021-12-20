@@ -25,6 +25,7 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
             error: error
         }        
     }
+    return output;
  }
 
  
