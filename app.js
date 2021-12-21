@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 const {
     getData
 } = require('./useR');
@@ -96,21 +97,24 @@ app.get("/async", (req, res, next) => {
     console.log("testing asyncronously...")
     // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
     //let trees = 75;
-    callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {algorithm: 'rf',data: '[3]'}) //Hyperparameter für die Algorithmen
-    .then((result) => {
-        console.log(result)
-        callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
+    callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {
+            algorithm: 'rf',
+            data: '[3]'
+        }) //Hyperparameter für die Algorithmen
         .then((result) => {
-            console.log(result);
-            res.send('success')
+            console.log(result)
+            callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
+                .then((result) => {
+                    console.log(result);
+                    res.send('success')
+                })
+                .catch((error) => {
+                    console.error(error);
+                })
         })
         .catch((error) => {
             console.error(error);
         })
-    })
-    .catch((error) => {
-        console.error(error);
-    })
 })
 
 
@@ -130,6 +134,39 @@ app.post('/upload', upload.single('file'), function (req, res) {
     }
 });
 
+app.post("/deleteFiles", async (req, res) => {
+    console.log("delete files from public/uploads");
+    try {
+        await deleteFiles(__dirname + "/public/uploads", req.body.file);
+        res.status(200).send("ok");
+    } catch (err) {
+        console.log(err);
+        res.status(500).send(err);
+    }
+});
+
+function deleteFiles(dirPath, fileName) {
+    return new Promise((resolve, reject) => {
+        fs.readdir(dirPath, (err, files) => {
+            if (err) {
+                reject(err);
+            } else {
+                for (const file of files) {
+                    if (file !== fileName && file !== ".gitignore") {
+                        fs.unlink(path.join(dirPath, file), err => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                console.log("file deleted: ", file);
+                            }
+                        });
+                    }
+                }
+                resolve();
+            }
+        });
+    });
+}
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 });
