@@ -81,6 +81,10 @@ app.get('/json', (req, res, next) => {
     res.sendFile(path.join(__dirname, './R/prediction_and_aoa/classes.json'));
 })
 
+app.get('/marker', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './public/marker.png'));
+})
+
 app.get('/rundemo', (req, res, next) => {
     console.log('calculation demo..');
     callMethodAsync(__dirname + "/R/DEMO.R", "rundemo", [""]).then((result) => {
