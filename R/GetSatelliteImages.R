@@ -191,6 +191,9 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   bbox = st_bbox(trainingData)
   # Querying images with rstac
   items = stacRequest(bbox, datetime, limit)
+  if (length(items$features) == 0) {
+    return(0)
+  }
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
@@ -202,6 +205,7 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   gdalcubes_options(threads = 16)
   # Create tif file
   createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
+  return(1)
 }
 
 # Function that creates the needed satellite image from the training data as a tif file.
@@ -251,6 +255,9 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   bboxUTM <- transformBBOXcrsToUTM(bboxWGS84)
   # Querying images with rstac
   items = stacRequest(bboxUTM, datetime, limit)
+  if (length(items$features) == 0) {
+    return(0)
+  }
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
@@ -262,6 +269,7 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   gdalcubes_options(threads = 16)
   # Create tif file
   createTifFileFromAOI(imageCollection, cubeView)
+  return(1)
 }
 
 # Function that loads and plots a tif file depending on a file path.
@@ -277,8 +285,8 @@ plotTifFile <- function(filePath){
 ################################################################################
 
 # library(sf)
-# trainingDataPath = "./R/training_data/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
-# datetime = "2020-06-01/2021-06-30"
+# trainingDataPath = "./training_data/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
+# datetime = "2020-06-02/2020-06-02"
 # limit = 100
 # desiredBands = c("B02","B03","B04","SCL")
 # resolution = 20
