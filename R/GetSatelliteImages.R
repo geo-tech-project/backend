@@ -192,7 +192,7 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   # Querying images with rstac
   items = stacRequest(bbox, datetime, limit)
   if (length(items$features) == 0) {
-    return(0)
+    return(1)
   }
   # print(items)
   # Creating an image collection
@@ -205,7 +205,7 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   gdalcubes_options(threads = 16)
   # Create tif file
   createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
-  return(1)
+  return(0)
 }
 
 # Function that creates the needed satellite image from the training data as a tif file.
@@ -228,7 +228,7 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
     prefix = "aoi_",
     overviews = FALSE,
     COG = TRUE,
-    rsmpl_overview = "nearest",
+    rsmpl_overview = "nearest", 
     creation_options = NULL,
     write_json_descr = FALSE,
     pack = NULL
@@ -256,7 +256,7 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   # Querying images with rstac
   items = stacRequest(bboxUTM, datetime, limit)
   if (length(items$features) == 0) {
-    return(0)
+    return(1)
   }
   # print(items)
   # Creating an image collection
@@ -269,7 +269,7 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   gdalcubes_options(threads = 16)
   # Create tif file
   createTifFileFromAOI(imageCollection, cubeView)
-  return(1)
+  return(0)
 }
 
 # Function that loads and plots a tif file depending on a file path.
