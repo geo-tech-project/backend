@@ -8,7 +8,6 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 RUN apt-get update -y && apt-get install -y r-base
-RUN R /R/Install_Dependencies.R
 
 # Copy dependency definitions
 COPY package.json /usr/src/app
@@ -18,6 +17,8 @@ RUN npm install
 
 # Get all the code needed to run the app
 COPY . /usr/src/app
+
+RUN Rscript /usr/src/app/R/Install_Dependencies.R
 
 # Expose the port the app runs in
 EXPOSE 8781
