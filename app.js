@@ -43,9 +43,14 @@ app.post('/start', async (req, res, next) => {
     console.log(req.body);
     let response = {}
     response.stac = await getData(req.body);
-    response.aoa = await calculateAOA(req.body);
-    console.log(response);
-    res.send(response);
+    if (response.stac.status === "error") {
+        res.status(400).send(response);
+        console.log("/start", response);
+    } else {
+        response.aoa = await calculateAOA(req.body);
+        console.log("/start", response);
+        res.send(response);
+    }
 })
 
 // route to return uploaded file
