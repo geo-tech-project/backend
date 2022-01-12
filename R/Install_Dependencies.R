@@ -1,5 +1,5 @@
 
-GetSatelliteImages_dependencies <- c("sf","rgdal","rgeos","rstac","gdalcubes","raster")
+GetSatelliteImages_dependencies <- c("terra","sf","rgdal","rgeos","rstac","gdalcubes","raster")
 
 #Itereate over the list of dependencies and install them
 for (dependencies in GetSatelliteImages_dependencies) {
