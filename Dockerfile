@@ -7,6 +7,8 @@ RUN mkdir -p /usr/src/app
 # Change directory so that our commands run inside this new directory
 WORKDIR /usr/src/app
 
+RUN apt-get update -y && apt-get install -y r-base
+
 # Copy dependency definitions
 COPY package.json /usr/src/app
 
