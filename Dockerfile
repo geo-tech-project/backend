@@ -8,7 +8,7 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 RUN apt-get update -y && apt-get install -y r-base
-RUN Rscript /R/Install_Dependencies.R
+RUN R /R/Install_Dependencies.R
 
 # Copy dependency definitions
 COPY package.json /usr/src/app
