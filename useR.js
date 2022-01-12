@@ -163,16 +163,13 @@ function processInputData(data) {
     } else {
         out.haveTrainingData = false;
     }
-    console.log(data.startDate)
 
     let startDate = new Date(data.startDate)
     
     startDate.setDate(startDate.getDate() + 1)
-    console.log(startDate)
     let endDate = new Date(data.endDate)
     endDate.setDate(endDate.getDate() + 1)
     out.datetime = startDate.toISOString().slice(0, 10) + '/' + endDate.toISOString().slice(0, 10)
-    console.log(out.datetime)
     let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
     return out;
