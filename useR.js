@@ -72,10 +72,7 @@ async function getTrainingDataTif(trainingDataPath, datetime, limit, desiredBand
     } catch (error) {
         //Build an error object.
         //TODO: More specific error msg from R given to the error object.
-        output = {
-            msg: "Error in R Script.",
-            error: error
-        }
+        output = ["2"];
     }
     return output;
 }
@@ -124,10 +121,7 @@ async function getAoiTif(bottomLeftX, bottomLeftY, topRightX, topRightY, datetim
     try {
         output = await R.callMethodAsync(rFilePath, 'generateSatelliteImageFromAOI', parameters);
     } catch (error) {
-        output = {
-            msg: "An Error in the R Script occured",
-            error: error
-        }
+        output = ["2"]
     }
     return output;
 }
@@ -169,7 +163,16 @@ function processInputData(data) {
     } else {
         out.haveTrainingData = false;
     }
-    out.datetime = data.startDate.substring(0, 10) + '/' + data.endDate.substring(0, 10);
+    console.log(data.startDate)
+
+    let startDate = new Date(data.startDate)
+    
+    startDate.setDate(startDate.getDate() + 1)
+    console.log(startDate)
+    let endDate = new Date(data.endDate)
+    endDate.setDate(endDate.getDate() + 1)
+    out.datetime = startDate.toISOString().slice(0, 10) + '/' + endDate.toISOString().slice(0, 10)
+    console.log(out.datetime)
     let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
     return out;
@@ -197,12 +200,60 @@ async function getData(request) {
         trainingData: {}
     }
     output.aoi = await getAoiTif(processedData.bottomLeftX, processedData.bottomLeftY, processedData.topRightX, processedData.topRightY, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
-    console.log("AOI TIF created successfully");
+    if (output.aoi[0] === "0") {
+        output.aoi = {
+            status: 'ok',
+            data: 'AOI was successfully created'
+        }
+        console.log("aoi.tif was successfully created")
+
+    } else if (output.aoi[0] === "1") {
+        output.aoi = {
+            status: 'error',
+            error: 'aoi: No stac items found for given date period, cloud coverage and location',
+            errorDetails: output.aoi[0]
+        }
+        console.log("aoi: No stac items found for given date period, cloud coverage and location")
+    } else {
+        output.aoi = {
+            status: 'error',
+            error: 'aoi: Unexpected error occured',
+            errorDetails: output.aoi[0]
+        }
+        console.log("aoi: Unexpected error occured")
+    }
     if (processedData.haveTrainingData) {
         output.trainingData = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
-        console.log("Training data TIF created successfully");
+        if (output.trainingData[0] === "0") {
+            output.trainingData = {
+                status: 'ok',
+                data: 'Training data was successfully created'
+            }
+            console.log("trainingData.tif was successfully created")
+        } else if (output.trainingData[0] === "1") {
+            output.trainingData = {
+                status: 'error',
+                error: 'trainingData: No stac items found for given date period, cloud coverage and location',
+                errorDetails: output.trainingData[0]
+            }
+            console.log('trainingData: No stac items found for given date period, cloud coverage and location')
+        } else {
+            output.trainingData = {
+                status: 'error',
+                error: 'trainingData: Unexpected error occured',
+                errorDetails: output.trainingData[0]
+            }
+            console.log("trainingData: Unexpected error occured")
+        }
     } else {
         output.trainingData = null;
+    }
+    if (output.aoi.status === 'ok' && output.trainingData.status === "ok") {
+        output.status = 'ok'
+        console.log("AOI and Training data was successfully created")
+    } else {
+        output.status = 'error'
+        console.log("AOI or Training data was not successfully created")
     }
     return output;
 }
