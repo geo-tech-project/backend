@@ -247,10 +247,10 @@ async function getData(request) {
     }
     if (output.aoi.status === 'ok' && output.trainingData.status === "ok") {
         output.status = 'ok'
-        console.log("AOI and Training data was successfully created")
+        console.log("AOI and training data was successfully created")
     } else {
         output.status = 'error'
-        console.log("AOI or Training data was not successfully created")
+        console.log("AOI or training data was not successfully created")
     }
     return output;
 }

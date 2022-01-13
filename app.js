@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const {
     getData
-} = require('./useR');
+} = require('./useR_AOI_TD');
 const {
     calculateAOA
 } = require('./useR_ML_AOA');
