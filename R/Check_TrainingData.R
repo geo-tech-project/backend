@@ -18,12 +18,12 @@ checkTrainingData <- function(path) {
  #Checking the Label
  labels <- trainingData$Label
  if(is.null(labels)){
-   # Fehlercode 1: Datei enth�lt keine Label Spalte
+   # Fehlercode 1: Datei enthaelt keine Label Spalte
    return(1)
  }
  has_NA <- any(is.na(labels))
  if(has_NA){
-   # Fehlercode 2: Datei enth�lt teilweise keine Label Werte
+   # Fehlercode 2: Datei enthaelt teilweise keine Label Werte
    return(2)
  }
  return(0) # Trainingsdaten sind valide
