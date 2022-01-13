@@ -4,7 +4,7 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const {
-    getData
+    getData, validateTrainingData
 } = require('./useR');
 const {
     calculateAOA
@@ -40,9 +40,21 @@ app.post('/start', async (req, res, next) => {
     console.log("/start");
     console.log(req.body);
     let response = {}
+    if(req.body.option === "data"){
+        let path = "./public/uploads/" + req.body.filename;
+        let valid = await validateTrainingData(path);
+        if(valid.status === "error"){
+            res.status(401).send({
+                status: "error",
+                message: 'Invalid training data',
+                error: valid
+            });
+            return
+        }
+    }
     response.stac = await getData(req.body);
     if (response.stac.status === "error") {
-        res.status(400).send(response);
+        res.status(402).send(response);
         console.log("/start 400", response);
     } else {
         response.aoa = await calculateAOA(req.body);
