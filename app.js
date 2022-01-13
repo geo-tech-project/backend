@@ -92,7 +92,7 @@ app.get('/marker', (req, res, next) => {
 
 app.get('/rundemo', (req, res, next) => {
     console.log('calculation demo..');
-    callMethodAsync(__dirname + "/R/DEMO.R", "rundemo", [""]).then((result) => {
+    callMethodAsync(__dirname + "/R/DEMO.R", "rundemo", ["data"]).then((result) => {
         console.log(result);
         res.send(result);
     }).catch((error) => {
@@ -107,9 +107,9 @@ app.get("/async", (req, res, next) => {
     // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
     //let trees = 75;
     callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {
-            algorithm: 'rf',
-            data: '[3]'
-        }) //Hyperparameter für die Algorithmen
+        algorithm: 'rf',
+        data: '[3]'
+    }) //Hyperparameter für die Algorithmen
         .then((result) => {
             console.log(result)
             callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
