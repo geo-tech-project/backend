@@ -15,10 +15,10 @@ rundemo <- function(data) {
   library(sp)
 
   # load raster stack from data directory
-  sen_ms <- stack("R/data/Sen_Muenster.grd")
+  sen_ms <- stack("R/demo_input/Sen_Muenster.grd")
 
   # load training data
-  trainSites <- read_sf("R/data/trainingsites_muenster.gpkg")
+  trainSites <- read_sf("R/demo_input/trainingsites_muenster.gpkg")
 
   # Ergänze PolygonID-Spalte falls nicht schon vorhanden, um später mit extrahierten Pixeln zu mergen
   trainSites$PolygonID <- 1:nrow(trainSites)
