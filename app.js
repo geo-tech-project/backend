@@ -37,18 +37,16 @@ app.use(express.urlencoded({
 app.use(cors());
 
 app.post('/start', async (req, res, next) => {
-    /**
-     * Formatting all needed incomingData in the way the getData function needs them.
-     */
+    console.log("/start");
     console.log(req.body);
     let response = {}
     response.stac = await getData(req.body);
     if (response.stac.status === "error") {
         res.status(400).send(response);
-        console.log("/start", response);
+        console.log("/start 400", response);
     } else {
         response.aoa = await calculateAOA(req.body);
-        console.log("/start", response);
+        console.log("/start 200", response);
         res.send(response);
     }
 })
