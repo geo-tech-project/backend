@@ -54,6 +54,7 @@ app.post('/start', async (req, res, next) => {
 })
 
 // route to return uploaded file
+// DEFAULT
 app.get('/file/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
 })
@@ -80,10 +81,6 @@ app.get('/furthertrainareas/:name', (req, res, next) => {
 // training polygons
 app.get('/trainingdata/:name', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
-})
-
-app.get('/json', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/prediction_and_aoa/classes.json'));
 })
 
 app.get('/marker', (req, res, next) => {
