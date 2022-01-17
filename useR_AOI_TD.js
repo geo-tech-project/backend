@@ -32,7 +32,50 @@ const rFilePath = './R/GetSatelliteImages.R';
 
 
 
-
+async function validateTrainingData(trainingDataPath) {
+    let output;
+    try {
+        output = await R.callMethodAsync("./R/Check_TrainingData.R", 'checkTrainingData', { path: trainingDataPath });
+    } catch (error) {
+        return {
+            status: "error",
+            message: "Error while validating the training data. Please check the training data and try again.",
+            code: "error"
+        }
+    }
+    
+    if(output[0] === "0"){
+        return {
+            status: "ok",
+            data: "Training Data are valid",
+            code: output[0]
+        }
+    } else if(output[0] === "1"){
+        return {
+            status: "error",
+            error: "Training Data: The Training Data must contain a column with name 'Label'!",
+            code: output[0]
+        }
+    } else if(output[0] === "2"){
+        return {
+            status: "error",
+            error: "Training Data: A 'Label' can not be empty!",
+            code: output[0]
+        }
+    } else if(output[0] === "3"){
+        return {
+            status: "error",
+            error: "Training Data: The geometries must be of type 'Polygon'!",
+            code: output[0]
+        }
+    } else {
+        return {
+            status: "error",
+            error: "Training Data: Unexpected error occured! Please try again!",
+            code: output[0]
+        }
+    }
+}
 
 /**
  * These function make the call of the function to get the Tif for the given Training data. These function will also try and catch these 
@@ -168,6 +211,7 @@ function processInputData(data) {
     
     startDate.setDate(startDate.getDate() + 1)
     let endDate = new Date(data.endDate)
+    
     endDate.setDate(endDate.getDate() + 1)
     out.datetime = startDate.toISOString().slice(0, 10) + '/' + endDate.toISOString().slice(0, 10)
     let path = './public/uploads/'
@@ -256,5 +300,6 @@ async function getData(request) {
 }
 
 module.exports = {
-    getData
+    getData,
+    validateTrainingData
 };
