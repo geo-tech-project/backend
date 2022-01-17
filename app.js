@@ -49,9 +49,9 @@ app.post('/start', async (req, res, next) => {
             console.log('/R/demo_aoi.tif was copied to /R/processed_sentinel_images/aoi.tif');
         });
         // copy Model to destination
-        fs.copyFile(__dirname + '/R/demo_input/demo_model.RDS', __dirname + '/R/model/model.RDS', (err) => {
+        fs.copyFile(__dirname + '/R/demo_input/demo_model.RDS', __dirname + '/public/uploads/model.RDS', (err) => {
             if (err) throw err;
-            console.log('/R/demo_input/demo_model.RDS was copied to /R/model/model.RDS');
+            console.log('/R/demo_input/demo_model.RDS was copied to /public/uploads/model.RDS');
         });
         let response = await calculateAOA(req.body);
         console.log("/start", response);
