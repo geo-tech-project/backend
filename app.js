@@ -55,7 +55,7 @@ app.post('/start', async (req, res, next) => {
         });
         let response = await calculateAOA(req.body);
         console.log("/start", response);
-        req.send(response);
+        res.send(response);
     }
     else {
         console.log("map");
