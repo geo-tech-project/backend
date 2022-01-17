@@ -243,7 +243,7 @@ async function getData(request) {
             console.log("trainingData: Unexpected error occured")
         }
     } else {
-        output.trainingData = null;
+        output.trainingData.status = 'ok';
     }
     if (output.aoi.status === 'ok' && output.trainingData.status === "ok") {
         output.status = 'ok'
