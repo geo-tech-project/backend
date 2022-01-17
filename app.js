@@ -71,14 +71,22 @@ app.post('/start', async (req, res, next) => {
         console.log("map");
         console.log(req.body);
         let response = {}
-        response.stac = await getData(req.body);
-        if (response.stac.status === "error") {
-            res.status(400).send(response);
-            console.log("/start", response);
-        } else {
+        if (req.body.option == "model"){
             response.aoa = await calculateAOA(req.body);
             console.log("/start", response);
             res.send(response);
+        }
+        else{
+            response.stac = await getData(req.body);
+            if (response.stac.status === "error") {
+                res.status(400).send(response);
+                console.log("/start", response);
+            }      
+            else {
+                response.aoa = await calculateAOA(req.body);
+                console.log("/start", response);
+                res.send(response);
+            }
         }
     }
 })
