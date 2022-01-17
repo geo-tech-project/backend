@@ -40,16 +40,46 @@ app.post('/start', async (req, res, next) => {
     /**
      * Formatting all needed incomingData in the way the getData function needs them.
      */
-    console.log(req.body);
-    let response = {}
-    response.stac = await getData(req.body);
-    if (response.stac.status === "error") {
-        res.status(400).send(response);
-        console.log("/start", response);
-    } else {
-        response.aoa = await calculateAOA(req.body);
+    if (req.body.whereareyoufrom == "demo") {
+        console.log("demo");
+        console.log(req.body);
+        // copy aoiTIF to destination
+        fs.copyFile(__dirname + '/R/demo_input/demo_aoi.tif', __dirname + '/R/processed_sentinel_images/aoi.tif', (err) => {
+            if (err) throw err;
+            console.log('/R/demo_aoi.tif was copied to /R/processed_sentinel_images/aoi.tif');
+        });
+        // copy TrainingDataTIF to destination
+        fs.copyFile(__dirname + '/R/demo_input/demo_trainingData.tif', __dirname + '/R/processed_sentinel_images/trainingData.tif', (err) => {
+            if (err) throw err;
+            console.log('/R/demo_input/demo_trainingData.tif was copied to /R/processed_sentinel_images/trainingData.tif');
+        });
+        // copy Model to destination
+        fs.copyFile(__dirname + '/R/demo_input/demo_model.RDS', __dirname + '/public/uploads/model.RDS', (err) => {
+            if (err) throw err;
+            console.log('/R/demo_input/demo_model.RDS was copied to /public/uploads/model.RDS');
+        });
+        // copy Model to destination
+        fs.copyFile(__dirname + '/R/demo_input/demo_model.RDS', __dirname + '/R/model/model.RDS', (err) => {
+            if (err) throw err;
+            console.log('/R/demo_input/demo_model.RDS was copied to /R/model/model.RDS');
+        });
+        let response = await calculateAOA(req.body);
         console.log("/start", response);
         res.send(response);
+    }
+    else {
+        console.log("map");
+        console.log(req.body);
+        let response = {}
+        response.stac = await getData(req.body);
+        if (response.stac.status === "error") {
+            res.status(400).send(response);
+            console.log("/start", response);
+        } else {
+            response.aoa = await calculateAOA(req.body);
+            console.log("/start", response);
+            res.send(response);
+        }
     }
 })
 

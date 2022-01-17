@@ -13,35 +13,19 @@ COPY package.json /usr/src/app
 # Install dependencies
 RUN npm install
 
+RUN apt-get update && apt-get install -y \
+    build-essential curl libcurl4-openssl-dev apt-utils \
+    r-base r-base-dev libssl-dev \
+    libudunits2-dev libproj-dev libgdal-dev libgeos-dev libssl-dev\
+    && rm -rf /var/lib/apt/lists/*
+RUN apt-get upgrade
 # Get all the code needed to run the app
-COPY . /usr/src/app
+COPY . .
+
+RUN Rscript --vanilla /usr/src/app/testR.R
 
 # Expose the port the app runs in
 EXPOSE 8781
 
 # Serve the app
 CMD ["npm", "start"]
-
-#### R ####
-FROM rocker/r-base:latest
-
-# system libraries of general use
-RUN apt-get update && apt-get install -y 
-
-RUN apt-get update && apt-get install -y \
-    libmpfr-dev
-
-RUN apt-get install libcurl4-openssl-dev -y
-
-RUN apt-get update -y && apt-get install -y r-base
-
-RUN R -e "install.packages('terra', repos='http://cran.us.r-project.org')"
-RUN R -e "install.packages('sf', repos='http://cran.us.r-project.org')"
-RUN R -e "install.packages('rgdal', repos='http://cran.us.r-project.org')"
-RUN R -e "install.packages('rgeos', repos='http://cran.us.r-project.org')"
-RUN R -e "install.packages('rstac', repos='http://cran.us.r-project.org')"
-RUN R -e "install.packages('gdalcubes', repos='http://cran.us.r-project.org')"
-RUN R -e "install.packages('raster', repos='http://cran.us.r-project.org')"
-
-COPY . /usr/src/app
-#RUN Rscript /usr/src/app/R/Install_Dependencies.R
