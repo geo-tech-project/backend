@@ -77,6 +77,7 @@ function processInputData(data) {
             out.hyperparameter = [data.sigma, data.cost]
         }
     }
+    console.log(out.desiredBands)
     return out;
 }
 
