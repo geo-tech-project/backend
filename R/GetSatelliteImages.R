@@ -119,7 +119,16 @@ stacRequest <- function(bbox, datetime, limit) {
 createImageCollection <- function(desiredBands, cloudCoverageInPercentage, items){
   # TODO : if(item$features == null) Schmeisse entssprechenden Fehler !!!
   library(gdalcubes)
-  s2_collection = stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] < cloudCoverageInPercentage})
+  s2_collection <- tryCatch(
+    {
+      stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] <= cloudCoverageInPercentage})
+    },
+    error=function(cond) {
+      return(1)
+    },
+    finally={
+    }
+    )
   return(s2_collection)
 }
 
@@ -191,12 +200,19 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   bbox = st_bbox(trainingData)
   # Querying images with rstac
   items = stacRequest(bbox, datetime, limit)
+  # if (items$context$returned == 0) {
+  #   return(1)
+  # }
+  items
   if (length(items$features) == 0) {
     return(1)
   }
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
+  if (imageCollection == 1) {
+    return(1)
+  }
   # print(imageCollection)
   # Creating the cube view
   cubeView = createCubeView(bbox, resolution, datetime)
@@ -261,6 +277,9 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
+  if (imageCollection == 1) {
+    return(1)
+  }
   # print(imageCollection)
   # Creating the cube view
   cubeView = createCubeView(bboxUTM, resolution, datetime)
@@ -285,12 +304,12 @@ plotTifFile <- function(filePath){
 ################################################################################
 
 # library(sf)
-# trainingDataPath = "./training_data/trainingsdaten_suedgeorgien_4326.gpkg" #trainingdata should be located in the R folder of the backend
-# datetime = "2020-06-02/2020-06-02"
+# trainingDataPath = "./training_data/trainingsdaten_muenster_32632.gpkg" #trainingdata should be located in the R folder of the backend
+# datetime = "2022-01-01/2022-01-08"
 # limit = 100
 # desiredBands = c("B02","B03","B04","SCL")
-# resolution = 20
-# cloudCoverageInPercentage = 20
+# resolution = 400
+# cloudCoverageInPercentage = 100
 
 ########################## Test for training data ##############################
 ################################################################################
@@ -328,7 +347,7 @@ plotTifFile <- function(filePath){
 # createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 # 
 # # Function to do all at once
-# generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 # 
 # # Plot the resulting tif file
 # plotTifFile("./R/processed_sentinel_images/trainingData.tif")
