@@ -255,7 +255,6 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   bboxUTM <- transformBBOXcrsToUTM(bboxWGS84)
   # Querying images with rstac
   items = stacRequest(bboxUTM, datetime, limit)
-  print(items$features)
   if (length(items$features) == 0) {
     return(1)
   }
