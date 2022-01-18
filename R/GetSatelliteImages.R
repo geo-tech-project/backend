@@ -124,7 +124,7 @@ createImageCollection <- function(desiredBands, cloudCoverageInPercentage, items
       stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] <= cloudCoverageInPercentage})
     },
     error=function(cond) {
-      return(1)
+      return(3)
     },
     finally={
     }
@@ -206,8 +206,8 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
-  if (imageCollection == 1) {
-    return(1)
+  if (imageCollection == 3) {
+    return(3)
   }
   # print(imageCollection)
   # Creating the cube view
@@ -273,8 +273,8 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
-  if (imageCollection == 1) {
-    return(1)
+  if (imageCollection == 3) {
+    return(3)
   }
   # print(imageCollection)
   # Creating the cube view

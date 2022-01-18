@@ -252,17 +252,24 @@ async function getData(request) {
     } else if (output.aoi[0] === "1") {
         output.aoi = {
             status: 'error',
-            error: 'aoi: No stac items found for given date period, cloud coverage and location',
+            error: 'AOI: No stac items found for given date period and location',
             errorDetails: output.aoi[0]
         }
-        console.log("aoi: No stac items found for given date period, cloud coverage and location")
+        console.log("AOI: No stac items found for given date period and location")
+    } else if (output.aoi[0] === "3") {
+        output.aoi = {
+            status: 'error',
+            error: 'AOI: No stac items found for given cloud coverage',
+            errorDetails: output.aoi[0]
+        }
+        console.log("AOI: No stac items found for given cloud coverage")
     } else {
         output.aoi = {
             status: 'error',
-            error: 'aoi: Unexpected error occured',
+            error: 'AOI: Unexpected error occured',
             errorDetails: output.aoi[0]
         }
-        console.log("aoi: Unexpected error occured")
+        console.log("AOI: Unexpected error occured")
     }
     if (processedData.haveTrainingData) {
         output.trainingData = await getTrainingDataTif(processedData.trainingDataPath, processedData.datetime, processedData.limit, processedData.desiredBands, processedData.resolution, processedData.cloudCoverageInPercentage);
@@ -275,27 +282,32 @@ async function getData(request) {
         } else if (output.trainingData[0] === "1") {
             output.trainingData = {
                 status: 'error',
-                error: 'trainingData: No stac items found for given date period, cloud coverage and location',
+                error: 'Training data: No stac items found for given date period and location',
                 errorDetails: output.trainingData[0]
             }
-            console.log('trainingData: No stac items found for given date period, cloud coverage and location')
+            console.log('Training data: No stac items found for given date period and location')
+        } else if (output.aoi[0] === "3") {
+            output.aoi = {
+                status: 'error',
+                error: 'Training data: No stac items found for given cloud coverage',
+                errorDetails: output.aoi[0]
+            }
+            console.log("Training data: No stac items found for given cloud coverage")
         } else {
             output.trainingData = {
                 status: 'error',
-                error: 'trainingData: Unexpected error occured',
+                error: 'Training data: Unexpected error occured',
                 errorDetails: output.trainingData[0]
             }
-            console.log("trainingData: Unexpected error occured")
+            console.log("Training data: Unexpected error occured")
         }
     } else {
         output.trainingData.status = 'ok';
     }
     if (output.aoi.status === 'ok' && output.trainingData.status === "ok") {
         output.status = 'ok'
-        console.log("AOI and training data was successfully created")
     } else {
         output.status = 'error'
-        console.log("AOI or training data was not successfully created")
     }
     return output;
 }
