@@ -286,11 +286,11 @@ async function getData(request) {
                 errorDetails: output.trainingData[0]
             }
             console.log('Training data: No stac items found for given date period and location')
-        } else if (output.aoi[0] === "3") {
-            output.aoi = {
+        } else if (output.trainingData[0] === "3") {
+            output.trainingData = {
                 status: 'error',
                 error: 'Training data: No stac items found for given cloud coverage',
-                errorDetails: output.aoi[0]
+                errorDetails: output.trainingData[0]
             }
             console.log("Training data: No stac items found for given cloud coverage")
         } else {
