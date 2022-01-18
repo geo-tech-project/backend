@@ -200,10 +200,6 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   bbox = st_bbox(trainingData)
   # Querying images with rstac
   items = stacRequest(bbox, datetime, limit)
-  # if (items$context$returned == 0) {
-  #   return(1)
-  # }
-  items
   if (length(items$features) == 0) {
     return(1)
   }
@@ -347,7 +343,7 @@ plotTifFile <- function(filePath){
 # createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
 # 
 # # Function to do all at once
-generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+# generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
 # 
 # # Plot the resulting tif file
 # plotTifFile("./R/processed_sentinel_images/trainingData.tif")
