@@ -216,6 +216,7 @@ function processInputData(data) {
     out.datetime = startDate.toISOString().slice(0, 10) + '/' + endDate.toISOString().slice(0, 10)
     let path = './public/uploads/'
     out.trainingDataPath = path + data.filename;
+    console.log(out.datetime);
     return out;
 }
 
