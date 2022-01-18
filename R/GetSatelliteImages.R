@@ -206,7 +206,7 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
-  if (imageCollection == 3) {
+  if (is.numeric(imageCollection)) {
     return(3)
   }
   # print(imageCollection)
@@ -273,7 +273,7 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   # print(items)
   # Creating an image collection
   imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
-  if (imageCollection == 3) {
+  if (is.numeric(imageCollection)) {
     return(3)
   }
   # print(imageCollection)
