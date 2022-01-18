@@ -1,4 +1,6 @@
 convertGeoPackageToGeoJson <- function(filename) {
+    setwd("./public/uploads/")
+
     library(sf)
     library(geojson)
     library(geojsonsf)
