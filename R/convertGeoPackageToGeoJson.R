@@ -1,5 +1,3 @@
-setwd("~/Documents/Studium/5. Semester/Geosoftware_II/geo-tech-project/backend/public/uploads/")
-
 convertGeoPackageToGeoJson <- function(filename) {
     library(sf)
     library(geojson)
