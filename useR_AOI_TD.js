@@ -39,7 +39,7 @@ async function validateTrainingData(trainingDataPath) {
     } catch (error) {
         return {
             status: "error",
-            message: "Error while validating the training data. Please check the training data and try again.",
+            message: "Error while validating the training data.",
             code: "error"
         }
     }
@@ -47,13 +47,13 @@ async function validateTrainingData(trainingDataPath) {
     if(output[0] === "0"){
         return {
             status: "ok",
-            data: "Training Data are valid",
+            data: "Training data is valid.",
             code: output[0]
         }
     } else if(output[0] === "1"){
         return {
             status: "error",
-            error: "Training Data: The Training Data must contain a column with name 'Label'!",
+            error: "Training Data: The training data must contain a 'Label' column!",
             code: output[0]
         }
     } else if(output[0] === "2"){
@@ -71,7 +71,7 @@ async function validateTrainingData(trainingDataPath) {
     } else {
         return {
             status: "error",
-            error: "Training Data: Unexpected error occured! Please try again!",
+            error: "Training Data: Unexpected error occured!",
             code: output[0]
         }
     }
