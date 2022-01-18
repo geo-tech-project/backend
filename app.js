@@ -181,9 +181,10 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
 app.post("/deleteFiles", async (req, res) => {
     console.log("delete files from public/uploads");
+    let json = {text: "ok"}
     try {
         await deleteFiles(__dirname + "/public/uploads", req.body.file);
-        res.status(200).send("ok");
+        res.status(200).send(json);
     } catch (err) {
         console.log(err);
         res.status(500).send(err);
