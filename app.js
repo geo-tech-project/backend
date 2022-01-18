@@ -192,7 +192,6 @@ app.post("/deleteFiles", async (req, res) => {
 
 app.post("/getGeoJSON", async (req, res) => {
     console.log(req.body)
-    var json = {text: "Route funktioniert"}
     try{
         // res.status(200).send(json)
         callMethodAsync(__dirname + "/R/convertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body).then((result) => {
