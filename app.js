@@ -67,29 +67,29 @@ app.post('/start', async (req, res, next) => {
         let response = await calculateAOA(req.body);
         res.send(response);
     } else {
-    console.log(req.body);
-    let response = {}
-    if(req.body.option === "data"){
-        let path = "./public/uploads/" + req.body.filename;
-        let valid = await validateTrainingData(path);
-        if(valid.status === "error"){
-            res.status(401).send({
-                status: "error",
-                message: 'Invalid training data',
-                error: valid
-            });
-            return
+        console.log(req.body);
+        let response = {}
+        if (req.body.option === "data") {
+            let path = "./public/uploads/" + req.body.filename;
+            let valid = await validateTrainingData(path);
+            if (valid.status === "error") {
+                res.status(401).send({
+                    status: "error",
+                    message: 'Invalid training data',
+                    error: valid
+                });
+                return
+            }
         }
-    }
-    response.stac = await getData(req.body);
-    if (response.stac.status === "error") {
-        res.status(402).send(response);
-        console.log("/start 400", response);
-    } else {
-        response.aoa = await calculateAOA(req.body);
-        console.log("/start 200", response);
-        res.send(response);
-    }
+        response.stac = await getData(req.body);
+        if (response.stac.status === "error") {
+            res.status(402).send(response);
+            console.log("/start 400", response);
+        } else {
+            response.aoa = await calculateAOA(req.body);
+            console.log("/start 200", response);
+            res.send(response);
+        }
     }
 });
 // route to return uploaded file
@@ -181,7 +181,7 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
 app.post("/deleteFiles", async (req, res) => {
     console.log("delete files from public/uploads");
-    let json = {text: "ok"}
+    let json = { text: "ok" }
     try {
         await deleteFiles(__dirname + "/public/uploads", req.body.file);
         res.status(200).send(json);
@@ -193,15 +193,15 @@ app.post("/deleteFiles", async (req, res) => {
 
 app.post("/getGeoJSON", async (req, res) => {
     console.log(req.body)
-    try{
+    try {
         // res.status(200).send(json)
         callMethodAsync(__dirname + "/R/convertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body).then((result) => {
-                console.log(result);
-                res.send(result);
-            }).catch((error) => {
-                console.error(error);
-                res.send(error);
-            })
+            console.log(result);
+            res.send(result);
+        }).catch((error) => {
+            console.error(error);
+            res.send(error);
+        })
     }
     catch (err) {
         res.status(400).send(err);
@@ -234,3 +234,5 @@ function deleteFiles(dirPath, fileName) {
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 });
+
+module.exports = app; 
