@@ -31,6 +31,8 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
  
 function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands) { //chosen_hyperparameter
     let output = {}
+    console.log(hyperparameter)
+    console.log(algorithm)
      try {
         callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands}).then((result) => {
                 output.model = result[0];
