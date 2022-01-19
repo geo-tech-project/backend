@@ -8,7 +8,7 @@ describe("GET /rundemo", function () {
     it("Should return status code 201", async function () {
         await request(app)
             .get("/rundemo")
-            .expect(201)
+            .expect(200)
     })
 })
 
@@ -39,6 +39,6 @@ describe("POST /start", function () {
                 coverage: 50,
                 mtry: null
             })
-            .expect(201)
+            .expect(200)
     })
 })
