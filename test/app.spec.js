@@ -40,24 +40,23 @@ describe("POST /start", function () {
             .post("/start")
             .send({
                 whereareyoufrom: 'map',
-                topleftlat: 51.94630759340601,
-                topleftlat: 51.94630759340601,
-                topleftlng: 7.603957437562283,
-                bottomleftlat: 51.972977513862844,
-                bottomleftlng: 7.603957437562283,
-                bottomrightlat: 51.972977513862844,
-                bottomrightlng: 7.662288948274864,
-                toprightlat: 51.94630759340601,
-                toprightlng: 7.662288948274864,
+                topleftlat: 51.95040183546208,
+                topleftlng: 7.608311651295573,
+                bottomleftlat: 51.96944221561243,
+                bottomleftlng: 7.608311651295573,
+                bottomrightlat: 51.96944221561243,
+                bottomrightlng: 7.639223889105581,
+                toprightlat: 51.95040183546208,
+                toprightlng: 7.639223889105581,
                 option: 'data',
                 algorithm: 'rf',
                 startDate: '2021-07-03T22:00:00.000Z',
-                endDate: '2021-07-17T22:00:00.000Z',
-                filename: './R/training_data/trainingsdaten_koeln_4326.gpkg',
+                endDate: '2021-07-24T22:00:00.000Z',
+                filename: 'trainingsdaten_koeln_4326.gpkg',
                 resolution: '400',
                 channels: ['B02', 'B03', 'B04', 'B05'],
-                coverage: 50,
-                mtry: null
+                coverage: 71,
+                mtry: 2
             })
             .expect(200)
     }).timeout(300000)
