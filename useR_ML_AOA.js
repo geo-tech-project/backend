@@ -72,7 +72,7 @@ function processInputData(data) {
         desiredBands: data.channels
     }
     if(data.option == 'data') {
-        if(data.algorithm = "rf") {
+        if(data.algorithm == "rf") {
             out.algorithm = "rf";
             out.hyperparameter = [data.mtry]
         } else if (data.algorithm == "svmRadial") {
