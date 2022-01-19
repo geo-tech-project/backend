@@ -28,10 +28,11 @@
 #########
 # -Trained model as .rds file
 
-# setwd("~/Documents/Studium/5. Semester/Geosoftware II/geo-tech-project/backend")
+# setwd("~/Documents/Studium/5. Semester/Geosoftware_II/geo-tech-project/backend")
 # algorithm = 'rf'
 # trainingDataPath = './public/uploads/trainingsdaten_muenster_32632.gpkg'
-# hyperparameter = c(2)
+# hyperparameter = c(4)
+# hyperparameter = c(1, 1)
 # desiredBands = c("B02", "B03", "B04", "SCL")
 
 
@@ -227,12 +228,18 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # save all classes of prediction to json file for web usage
   vector <- c()
-  for(class in model$finalModel$classes) {
-    vector <- c(vector, class)
+  if(model$method == 'rf') {
+    for(class in model$finalModel$classes) {
+      vector <- c(vector, class)
+    }
+  } else if (model$method == 'svmRadial'){
+    for(class in model$finalModel@lev) {
+      vector <- c(vector, class)
+    }
   }
   json <- rjson::toJSON(vector)
   write(json, "R/prediction_and_aoa/classes.json")
-
+  
   print('Calculation of prediction and AOA was successfull')
 }
 
