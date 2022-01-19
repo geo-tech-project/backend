@@ -29,7 +29,7 @@ describe("POST /start", function () {
                 mtry: 2
             })
             .expect(200)
-    }).timeout(40000)
+    }).timeout(300000)
 })
 
 
