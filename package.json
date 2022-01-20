@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
-  "scripts": {
+    "scripts": {
     "start": "node app.js",
     "test": "mocha",
-    "doc": "jsdoc -d docs  app.js"
+    "doc": "jsdoc -d docs  useR_AOI_TD.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "ng2-file-upload": "^1.4.0",
     "nodemon": "^2.0.15",
     "r-integration": "^1.4.0",
-    "supertest": "^6.2.2"
+    "supertest": "^6.2.2",
+    "swagger-ui-express": "^4.3.0"
   }
 }
