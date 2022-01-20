@@ -1,8 +1,81 @@
 const request = require("supertest")
 const assert = require('assert')
 const app = require("../app.js")
+var expect = require('chai').expect;
+var { calculateAOA, processInputData, calculateAOAwithGivenModel, calculateNewModelAndAOA } = require("../useR_ML_AOA");
+
+var inputObjectModel = {
+    option: 'model',
+    filePath: 'model.RDS',
+    channels: ['B02', 'B03', 'B04', 'B05'],
+}
+
+var inputObjectData = {
+    option: 'data',
+    filePath: './R/training_data/trainingsdaten_koeln_4326.gpkg',
+    channels: ['B02', 'B03', 'B04', 'B05'],
+    algorithm: "rf",
+    mtry: 2
+}
+
+//Testing processInpuData with given model
+describe('#processInputDataModel()', function () {
+    context('with json argument', function () {
+        it('should return object', function () {
+
+            var result = processInputData(inputObjectModel);
+
+            expect(result)
+                .to.be.a('Object')
+
+        })
+    })
+})
+
+//Testing processInpuData with training data
+describe('#processInputDataTrainingData()', function () {
+    context('with json argument', function () {
+        it('should return object', function () {
+
+            var result = processInputData(inputObjectData);
+
+            expect(result)
+                .to.be.a('Object')
+
+        })
+    })
+})
+
+//Testing calculateNewModelAndAOA 
+describe('#calculateNewModelAndAOA()', function () {
+    context('with json argument', function () {
+        it("should return model", function () {
+
+            var result = calculateNewModelAndAOA("rf", './R/training_data/trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
+
+            console.log(result)
+
+            expect(result)
+                .to.be.a('Object')
+
+        })
+    })
+})
+
+//Testing calculateAOAwithGivenModel
+describe('#calculateAOAwithGivenModel()', function () {
+    context('with object argument', function () {
+        it('should return object', async function () {
+            var result = await calculateAOAwithGivenModel('model.RDS', ['B02', 'B03', 'B04', 'B05'])
+
+            expect(result)
+                .to.be.a('Object')
+        })
+    })
+})
 
 
+/** 
 //Test of demo route
 describe("POST /start", function () {
     it("Should return status code 200", async function () {
@@ -62,4 +135,4 @@ describe("POST /start", function () {
             })
             .expect(200)
     })
-})
+})*/
