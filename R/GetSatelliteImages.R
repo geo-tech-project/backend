@@ -37,8 +37,8 @@ getEPSG <- function(longitude){
 # parameters: bbox of the area of interest
 bboxToWGS84 <- function(bbox){
   library(sf)
-  st_as_sfc(bbox) |>
-    st_transform("EPSG:4326") |>
+  st_as_sfc(bbox) %>%
+    st_transform("EPSG:4326") %>%
     st_bbox() -> bbox_WGS84
   return(bbox_WGS84)
 }
@@ -102,12 +102,12 @@ stacRequest <- function(bbox, datetime, limit) {
   library(rstac)
   s = stac("https://earth-search.aws.element84.com/v0")
   bbox = bboxToWGS84(bbox)
-  items = s |>
+  items = s %>%
     stac_search(collections = "sentinel-s2-l2a-cogs",
                 bbox = c(bbox["xmin"],bbox["ymin"],
                          bbox["xmax"],bbox["ymax"]), 
                 datetime = datetime,
-                limit = limit) |>
+                limit = limit) %>%
     post_request()
   return(items)
 }
@@ -160,11 +160,11 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
   S2.mask = image_mask("SCL", values = c(3,8,9))
   # Create raster cube and filter images by the geometry of the training data
   if (!is.null(trainingData$geom)){
-    sentinel <- raster_cube(imageCollection, cubeView, S2.mask) |>
+    sentinel <- raster_cube(imageCollection, cubeView, S2.mask) %>%
       filter_geom(trainingData$geom)
   }
   else if(!is.null(trainingData$geometry)) {
-    sentinel <- raster_cube(imageCollection, cubeView, S2.mask) |>
+    sentinel <- raster_cube(imageCollection, cubeView, S2.mask) %>%
       filter_geom(trainingData$geometry)
   }
   #print(sentinel)
