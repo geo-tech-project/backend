@@ -1,7 +1,4 @@
 
-//Hard coded parameters, saved seperately for easy modification.
-
-
 /**
  * R package to execute R Files, commands and methods
  */
@@ -12,14 +9,24 @@
   */
  const rFilePath = './R/ML_AOA.R';
 
-
+/**
+ * The function calls the classifyAndAOA function of the ML_AOA-R-script. It passes the path of the model
+ * to be used for the calculations and the desired bands which the AOI-stack bands should be named like.
+ * The function returns the output variable in which the reponse of the asyncronous call is stored.
+ * The response is either a String which confirms the successfull calculations or an error.
+ * 
+ * @param {String} modelPath The relative path to the location of the model to be used.
+ * @param {*} desiredBands Telling the R-Skript which bands from the Sentinel data will be selected. Each Band must be a standalone String in
+ * the Array. Required is the 'SCL' band for filtering the clouds from the data. Will be passed to R. 
+ * @returns 
+ */
 function calculateAOAwithGivenModel(modelPath, desiredBands) {
     
     let output;
     
     try{
         output = R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
-    } catch {
+    } catch (error) {
         output = {
             message: "An Error in the R-Script occured", 
             error: error
