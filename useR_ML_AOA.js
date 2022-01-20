@@ -52,6 +52,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
 
     try {
         output.model = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands})
+        console.log(output.model)
     } catch (error) {
         console.log(error)
         output.error = "An Error in the R-Script occured"
@@ -59,6 +60,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
 
     try {
         output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands})
+        console.log(output.classifyAndAOA)
     } catch (error) {
         console.log(error)
         output.error = "An Error in the R-Script occured"
@@ -120,10 +122,10 @@ function processInputData(data) {
     let processedData = processInputData(request);
     let output = {}
     if (processedData.option == 'data') {
-        output.message = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands)
+        output = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands)
         console.log("Model, prediction and AOA created successfully")
     } else if (processedData.option == 'model') {
-        output.message = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
+        output = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
         console.log("Prediction and AOA created successfully")
     }
     return output;
