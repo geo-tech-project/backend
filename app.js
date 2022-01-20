@@ -1,10 +1,16 @@
+const swaggerUi = require('swagger-ui-express');
+const {
+    apiDocumentation
+} = require('./docs/api/apidoc.js');
+
 const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const {
-    getData, validateTrainingData
+    getData,
+    validateTrainingData
 } = require('./useR_AOI_TD');
 const {
     calculateAOA
@@ -12,6 +18,9 @@ const {
 var cors = require('cors');
 const R = require('r-integration');
 const https = require('https')
+const {
+    resolveSoa
+} = require('dns');
 
 const PORT = process.env.PORT || 8781;
 
@@ -96,31 +105,43 @@ app.post('/start', async (req, res, next) => {
 // route to return uploaded file
 // DEFAULT
 app.get('/file/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
+    const filePath = path.join(__dirname, 'public/uploads', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 app.get('/model/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/model/', req.params.name));
+    const filePath = path.join(__dirname, './R/model/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // Prediction and AOA
 app.get('/predictionaoa/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/prediction_and_aoa/', req.params.name));
+    const filePath = path.join(__dirname, './R/prediction_and_aoa/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // Sentinel images
 app.get('/processedsentinelimages/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/processed_sentinel_images/', req.params.name));
+    const filePath = path.join(__dirname, './R/processed_sentinel_images/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // Further train areas
 app.get('/furthertrainareas/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/further_train_areas/', req.params.name));
+    const filePath = path.join(__dirname, './R/further_train_areas/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // training polygons
 app.get('/trainingdata/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
+    const filePath = path.join(__dirname, './public/uploads/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 app.get('/marker', (req, res, next) => {
@@ -144,9 +165,9 @@ app.get("/async", (req, res, next) => {
     // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
     //let trees = 75;
     callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {
-        algorithm: 'rf',
-        data: '[3]'
-    }) //Hyperparameter für die Algorithmen
+            algorithm: 'rf',
+            data: '[3]'
+        }) //Hyperparameter für die Algorithmen
         .then((result) => {
             console.log(result)
             callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
@@ -182,13 +203,18 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
 app.post("/deleteFiles", async (req, res) => {
     console.log("delete files from public/uploads");
-    let json = { text: "ok" }
+    let json = {
+        text: "The files were deleted successfully"
+    }
     try {
         await deleteFiles(__dirname + "/public/uploads", req.body.file);
         res.status(200).send(json);
     } catch (err) {
         console.log(err);
-        res.status(500).send(err);
+        res.status(500).send({
+            "text": "Error while deleting files",
+            "error": err
+        });
     }
 });
 
@@ -203,8 +229,7 @@ app.post("/getGeoJSON", async (req, res) => {
             console.error(error);
             res.send(error);
         })
-    }
-    catch (err) {
+    } catch (err) {
         res.status(400).send(err);
     }
 });
@@ -229,6 +254,17 @@ app.get('/markdown', (req, res, next) => {
     });
 })
 
+function checkFileNotFound(filePath, res) {
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            res.status(404).send({
+                status: "error",
+                message: 'File not found'
+            });
+            return;
+        }
+    });
+}
 /**
  * Test function for async calls
  * @code function callMethodAsync(path, method, args) { test(); }
@@ -258,8 +294,10 @@ function deleteFiles(dirPath, fileName) {
         });
     });
 }
+
+app.use('/documentation', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 });
 
-module.exports = app; 
+module.exports = app;

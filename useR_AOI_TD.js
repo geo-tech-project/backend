@@ -53,7 +53,7 @@ async function validateTrainingData(trainingDataPath) {
     } catch (error) {
         return {
             status: "error",
-            message: "Error while validating the training data.",
+            error: "Error while validating the training data.",
             code: "error"
         }
     }
