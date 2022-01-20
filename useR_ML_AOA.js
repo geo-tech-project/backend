@@ -16,9 +16,9 @@
  * The response is either a String which confirms the successfull calculations or an error.
  * 
  * @param {String} modelPath The relative path to the location of the model to be used.
- * @param {*} desiredBands Telling the R-Skript which bands from the Sentinel data will be selected. Each Band must be a standalone String in
- * the Array. Required is the 'SCL' band for filtering the clouds from the data. Will be passed to R. 
- * @returns 
+ * @param {String[]} desiredBands Telling the R-Skript how to name the bands of the used aoi.tif. Each Band must be a standalone String in
+ * the Array. Required is the 'SCL' which was used for filtering the clouds before.
+ * @returns the result of the R-Skript. Either error object or String that confirms the successfull calculations.
  */
 function calculateAOAwithGivenModel(modelPath, desiredBands) {
     
@@ -35,28 +35,35 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
     return output;
  }
 
- 
-function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands) { //chosen_hyperparameter
+/**
+ * The function calls the training function of the ML_AOA-R-script. It passes the algorithm (desired by the user), 
+ * the trainingdataPath (relative filepath where the uploaded training data can be found), the hyperparameter (defined by the user)
+ * and the desiredBands (to name the aoi.tif bands).
+ * 
+ * @param {String} algorithm 
+ * @param {String} trainingDataPath 
+ * @param {String} hyperparameter 
+ * @param {Array} desiredBands 
+ * @returns 
+ */
+async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands) {
+
     let output = {}
-    //console.log(hyperparameter)
-    //console.log(algorithm)
-     try {
-        callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands}).then((result) => {
-                output.model = result[0];
-                callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands}).then((result) => {
-                    output.classifyAndAOA = result[0];
-                }).catch((error) => {
-                    console.error(error);
-                })
-            }).catch((error) => {
-                console.log(error)
-            })
-    } catch(error) {
-        output = {
-            message: "An Error in the R-Script occured", 
-            error: error
-        }        
+
+    try {
+        output.model = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands})
+    } catch (error) {
+        console.log(error)
+        output.error = "An Error in the R-Script occured"
     }
+
+    try {
+        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands})
+    } catch (error) {
+        console.log(error)
+        output.error = "An Error in the R-Script occured"
+    }    
+    
     return output;
  }
 

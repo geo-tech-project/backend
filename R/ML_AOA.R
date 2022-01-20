@@ -95,16 +95,6 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
       tune_grid <- expand.grid( sigma = c(hyperparameter[1]),
                                 C     = c(hyperparameter[2])) 
   }
- # else if (algorithm == 'xgbTree') {
- #     tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
- #                               max_depth         = c(hyperparameter[2]),
- #                               eta               = c(hyperparameter[3]),
- #                               gamma             = c(hyperparameter[4]),
- #                               colsample_bytree  = c(hyperparameter[5]),
- #                               min_child_weight  = c(hyperparameter[6]),
- #                               subsample         = c(hyperparameter[7]))
- # } 
-
 
   
   #Erstellen (Training) des Models
@@ -124,7 +114,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 
   saveRDS(model, file="R/model/model.RDS")
 
-  print('Model was created successfully')  
+  'Model was created successfully'
 }
 
 
@@ -240,6 +230,6 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   json <- rjson::toJSON(vector)
   write(json, "R/prediction_and_aoa/classes.json")
   
-  print('Calculation of prediction and AOA was successfull')
+  'Calculation of prediction and AOA was successfull'
 }
 
