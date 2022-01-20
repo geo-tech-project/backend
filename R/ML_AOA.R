@@ -114,7 +114,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 
   saveRDS(model, file="R/model/model.RDS")
 
-  'Model was created successfully'
+  return(0)
 }
 
 
@@ -186,6 +186,15 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   # load raster stack from data directory
   model <- readRDS(modelPath)
   
+  # check if all predictors are in the data the predictions are made on
+  predictors <- model$finalModel$xNames
+  bands <- names(stack)
+  for (i in 1:length(predictors)) {
+    if (!(predictors[i] %in% bands)) {
+      return(1)
+    }
+  }
+  
   # prediction
   prediction <- predict(stack,model)
 
@@ -230,6 +239,6 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   json <- rjson::toJSON(vector)
   write(json, "R/prediction_and_aoa/classes.json")
   
-  'Calculation of prediction and AOA was successfull'
+  return(0)
 }
 

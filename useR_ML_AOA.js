@@ -15,7 +15,7 @@
  * The function returns the output variable in which the reponse of the asyncronous call is stored.
  * The response is either a String which confirms the successfull calculations or an error.
  * 
- * @param {String} modelPath The relative path to the location of the model to be used.
+ * @param {String} modelPath The relative path to the location of the model which the user provided.
  * @param {String[]} desiredBands Telling the R-Skript how to name the bands of the used aoi.tif. Each Band must be a standalone String in
  * the Array. Required is the 'SCL' which was used for filtering the clouds before.
  * @returns the result of the R-Skript. Either error object or String that confirms the successfull calculations.
@@ -27,10 +27,7 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
     try{
         output = R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
     } catch (error) {
-        output = {
-            message: "An Error in the R-Script occured", 
-            error: error
-        }        
+        output = output = ["2"]
     }
     return output;
  }
@@ -38,12 +35,14 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
 /**
  * The function calls the training function of the ML_AOA-R-script. It passes the algorithm (desired by the user), 
  * the trainingdataPath (relative filepath where the uploaded training data can be found), the hyperparameter (defined by the user)
- * and the desiredBands (to name the aoi.tif bands).
+ * and the desiredBands (to name the aoi.tif bands). The function returns an output object in which the responses of the async calls
+ * are stored. If an unexpected error occurs the output variable is set to a specific value.
  * 
- * @param {String} algorithm 
- * @param {String} trainingDataPath 
- * @param {String} hyperparameter 
- * @param {Array} desiredBands 
+ * @param {String} algorithm Abreviation of the method in caret package to tell the Skript the how to train.
+ * @param {String} trainingDataPath The relative path to the location of the training data which the user provided.
+ * @param {Numbers[]} hyperparameter Hyperparameter selected by the user or default values
+ * @param {Array} desiredBands Telling the R-Skript how to name the bands of the used trainingData.tif and aoi.tif. Each Band must be a standalone String in
+ * the Array. Required is the 'SCL' which was used for filtering the clouds before.
  * @returns 
  */
 async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands) {
@@ -51,11 +50,13 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
     let output = {}
 
     try {
-        output.model = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands})
-        console.log(output.model)
+        output.training = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands})
+        console.log(output.training)
     } catch (error) {
         console.log(error)
-        output.error = "An Error in the R-Script occured"
+        output.training = ["2"]
+        output.classifyAndAOA = ["3"]
+        return output;
     }
 
     try {
@@ -63,7 +64,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
         console.log(output.classifyAndAOA)
     } catch (error) {
         console.log(error)
-        output.error = "An Error in the R-Script occured"
+        output.classifyAndAOA = ["2"]
     }    
     
     return output;
@@ -122,14 +123,83 @@ function processInputData(data) {
     let processedData = processInputData(request);
     let output = {}
     if (processedData.option == 'data') {
+
         output = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands)
-        console.log("Model, prediction and AOA created successfully")
+
+        if (output.training[0] === "0" && output.classifyAndAOA[0] === '0') {
+            output.training = {
+                status: 'ok',
+                data: 'Model successfully calculated and created'
+            }
+            output.classifyAndAOA = {
+                status: 'ok',
+                data: 'Prediction and AOA successfully calculated and created'
+            }
+            console.log("model.RDS was successfully created")
+            console.log("prediction.tif was successfully created")
+            console.log("aoa.tif was successfully created")
+        } else if (output.training[0] === '2' && output.classifyAndAOA[0] === '3'){
+            output.training = {
+                status: 'error',
+                error: 'Model training: Unexpected error occured',
+                errorDetails: output.training[0]
+            }
+            output.classifyAndAOA = {
+                status: 'not executed',
+                error: 'Not executed due to unexpected error in model training',
+            }
+            console.log("Model training: Unexpected error occured")
+        } else if (output.training[0] === '0' && output.classifyAndAOA[0] === '2') {
+            output.training = {
+                status: 'ok',
+                data: 'Model successfully calculated and created'
+            }
+            output.classifyAndAOA = {
+                status: 'error',
+                error: 'Prediction and AOA: Unexpected error occured',
+                errorDetails: output.classify[0]
+            }
+            console.log("Prediction and AOA: Unexpected error occured")
+        }
+
     } else if (processedData.option == 'model') {
+
         output = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
-        console.log("Prediction and AOA created successfully")
+
+        if (output[0] === '0') {
+            output.classifyAndAOA = {
+                status: 'ok',
+                data: 'Prediction and AOA successfully calculated and created'
+            }
+            console.log("prediction.tif was successfully created")
+            console.log("aoa.tif was successfully created")
+        } else if (output[0] === '1'){
+            output.classifyAndAOA = {
+                status: 'error',
+                error: 'There are predictors in the model which are are missing in the Sentinel data',
+            }
+            console.log("Prediction and AOA: There are predictors in the model which are are missing in the Sentinel data")
+        } else if (output.training[0] === '2') {
+            output.classifyAndAOA = {
+                status: 'error',
+                error: 'Prediction and AOA: Unexpected error occured',
+                errorDetails: output.classifyAndAOA[0]
+            }
+            console.log("Prediction and AOA: Unexpected error occured")
+        }
+
     }
+    
     return output;
 }
+
+/** error-codes
+ * 0: ok
+ * 1: predictor of model not in the given sentinel tif (only relevant if working with user model)
+ * 2: unexpected error
+ * 3: not executed (only relevant if working with training data)  
+ */ 
+
 
 
  module.exports = {
