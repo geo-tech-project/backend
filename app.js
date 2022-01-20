@@ -11,6 +11,7 @@ const {
 } = require('./useR_ML_AOA');
 var cors = require('cors');
 const R = require('r-integration');
+const https = require('https')
 
 const PORT = process.env.PORT || 8781;
 
@@ -207,6 +208,26 @@ app.post("/getGeoJSON", async (req, res) => {
         res.status(400).send(err);
     }
 });
+
+// get markdown file from repo
+app.get('/markdown', (req, res, next) => {
+    https.get('https://raw.githubusercontent.com/geo-tech-project/frontend/main/README.md', (resp) => {
+        let data = '';
+
+        // A chunk of data has been received.
+        resp.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        // The whole response has been received. Print out the result.
+        resp.on('end', () => {
+            res.send(data)
+        });
+
+    }).on("error", (err) => {
+        console.log("Error: " + err.message);
+    });
+})
 
 /**
  * Test function for async calls
