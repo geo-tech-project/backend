@@ -114,8 +114,9 @@ function processInputData(data) {
 
 
 /**
- * The functions processInputData and  were combinded here to a single function, which can be called from app.js if its
- * get data for starting a calculation.  
+ * The function gets the metadata from the users request and processes it first for its further calculations. Onwards either the function for calculating
+ * the prediction and aoa  with a given model is called or the function which first calculates a model based on provided training data and afterwards calculates
+ * the prediction and aoa is called.
  * @param {{
  *          whereareyoufrom: String,
  *          topleftlat: Number,
