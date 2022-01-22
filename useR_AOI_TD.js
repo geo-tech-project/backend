@@ -8,7 +8,7 @@ const DESIRED_BANDS = ["B02", "B03", "B04", "SCL"];
 /**
  * Hard coded parameter for limit of stac request.
  */
-const LIMIT = 100;
+const LIMIT = 400;
 
 /**
  * Hard coded parameter for resolution of packages.
