@@ -25,9 +25,9 @@ function calculateAOAwithGivenModel(modelPath, desiredBands) {
     let output;
     
     try{
-        output = R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
+        output.classifyAndAOA = R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
     } catch (error) {
-        output = output = ["2"]
+        output.classifyAndAOA = ["2"]
     }
     return output;
  }
@@ -166,20 +166,20 @@ function processInputData(data) {
 
         output = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
 
-        if (output[0] === '0') {
+        if (output.classifyAndAOA[0] === '0') {
             output.classifyAndAOA = {
                 status: 'ok',
                 data: 'Prediction and AOA successfully calculated and created'
             }
             console.log("prediction.tif was successfully created")
             console.log("aoa.tif was successfully created")
-        } else if (output[0] === '1'){
+        } else if (output.classifyAndAOA[0] === '1'){
             output.classifyAndAOA = {
                 status: 'error',
                 error: 'There are predictors in the model which are are missing in the Sentinel data',
             }
             console.log("Prediction and AOA: There are predictors in the model which are are missing in the Sentinel data")
-        } else if (output.training[0] === '2') {
+        } else if (output.classifyAndAOA[0] === '2') {
             output.classifyAndAOA = {
                 status: 'error',
                 error: 'Prediction and AOA: Unexpected error occured',
