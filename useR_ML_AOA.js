@@ -50,7 +50,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
     let output = {}
 
     try {
-        output.training = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands})
+        output.training = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands: desiredBands})
     } catch (error) {
         output.training = ["2"]
         output.classifyAndAOA = ["3"]
