@@ -31,7 +31,7 @@
 # setwd("~/Documents/Studium/5. Semester/Geosoftware_II/geo-tech-project/backend")
 # algorithm = 'rf'
 # trainingDataPath = './public/uploads/trainingsdaten_muenster_32632.gpkg'
-# hyperparameter = c(4)
+# hyperparameter = c(2)
 # hyperparameter = c(1, 1)
 # desiredBands = c("B02", "B03", "B04", "SCL")
 
@@ -52,6 +52,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/trainingData.tif")
   names(stack) <-  desiredBands
+  # stack <- scale(stack, center = c(0,0,0,0,0), scale = c(10, 10, 10, 10, 10))
   
   # load training data
   trainSites <- read_sf(trainingDataPath)
@@ -104,9 +105,6 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
                  metric="Kappa",
                  trControl=ctrl,
                  tuneGrid = tune_grid)
-                 #tuneLength = 10) // bin mir nicht sicher welche Auswirkung der Parameter hat
-                 #importance=TRUE,
-                 #ntree=trees)
   
 
   files <- list.files(path="./R/model/")
@@ -157,7 +155,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 # -Recommended training locations
 
 # modelPath = "R/model/model.RDS"
-# desiredBands = c("B02", "B03", "B04", "SCL")
+# desiredBands = c("B02", "B03", "B04", "B08", "SCL")
 
 classifyAndAOA <- function(modelPath, desiredBands) {
   
@@ -182,6 +180,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/aoi.tif")
   names(stack) <- desiredBands
+  # stack <- scale(stack, center = c(0,0,0,0,0), scale = c(10, 10, 10, 10, 10))
 
   # load raster stack from data directory
   model <- readRDS(modelPath)
