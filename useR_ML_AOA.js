@@ -51,9 +51,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
 
     try {
         output.training = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands})
-        console.log(output.training)
     } catch (error) {
-        console.log(error)
         output.training = ["2"]
         output.classifyAndAOA = ["3"]
         return output;
@@ -61,9 +59,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
 
     try {
         output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands})
-        console.log(output.classifyAndAOA)
     } catch (error) {
-        console.log(error)
         output.classifyAndAOA = ["2"]
     }    
     
@@ -82,7 +78,6 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
   * @returns The processed data as an object.
   */
 function processInputData(data) {
-    console.log(data)
     var out = {
         option: data.option,
         filePath: './public/uploads/' + data.filename, 
@@ -161,6 +156,12 @@ function processInputData(data) {
             }
             console.log("Prediction and AOA: Unexpected error occured")
         }
+        //Setting output.status to 'ok' if the script(s) run successfully, otherwise 'error'.
+        if (output.training.status === 'ok' && output.classifyAndAOA.status === 'ok') {
+            output.status = 'ok'
+        } else {
+            output.status = 'error'
+        }
 
     } else if (processedData.option == 'model') {
 
@@ -188,8 +189,14 @@ function processInputData(data) {
             console.log("Prediction and AOA: Unexpected error occured")
         }
 
+        //Setting output.status to 'ok' if the script(s) run successfully, otherwise 'error'.
+        if (output.classifyAndAOA.status === 'ok') {
+            output.status = 'ok'
+        } else {
+            output.status = 'error'
+        }
+
     }
-    
     return output;
 }
 
