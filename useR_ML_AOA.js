@@ -20,7 +20,7 @@
  * the Array. Required is the 'SCL' which was used for filtering the clouds before.
  * @returns the result of the R-Skript. Either error object or String that confirms the successfull calculations.
  */
-function calculateAOAwithGivenModel(modelPath, desiredBands) {
+async function calculateAOAwithGivenModel(modelPath, desiredBands) {
     
     let output = {};
     
