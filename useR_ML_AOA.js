@@ -22,7 +22,7 @@
  */
 function calculateAOAwithGivenModel(modelPath, desiredBands) {
     
-    let output;
+    let output = {};
     
     try{
         output.classifyAndAOA = R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
