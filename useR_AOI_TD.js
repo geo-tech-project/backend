@@ -1,27 +1,27 @@
 //Hard coded parameters, saved seperately for easy modification.
 
 /**
- * Hard coded parameter with desiredBands.
+ * @constant {String} DESIRED_BANDS Hard coded parameter with desiredBands.
  */
 const DESIRED_BANDS = ["B02", "B03", "B04", "SCL"];
 
 /**
- * Hard coded parameter for limit of stac request.
+ * @constant {Number} LIMIT Hard coded parameter for limit of stac request.
  */
 const LIMIT = 400;
 
 /**
- * Hard coded parameter for resolution of packages.
+ * @constant {Number} RESOLUTION Hard coded parameter for resolution of packages.
  */
 const RESOLUTION = 400;
 
 /**
- * Hard coded parameter for the cloud coverage in percentage.
+ * @constant {Number} CLOUD_COVERAGE_IN_PERCENTAGE Hard coded parameter for the cloud coverage in percentage.
  */
 const CLOUD_COVERAGE_IN_PERCENTAGE = 20;
 
 /**
- * R package to execute R Files, commands and methods
+ * @constant {module} R R package to execute R Files, commands and methods
  */
 const R = require('r-integration');
 
@@ -38,7 +38,8 @@ const rFilePath = './R/GetSatelliteImages.R';
  * exist the function will return an error object. If all these conditions are met the function will return an object with the following properties:
  *  {status: 'ok', message: 'Training data is valid', code : 0}. All the checks are done in the R-Script. The R-cript returns a code, which indicates 
  * if the data is valid or not. The code is 0 if the data is valid, and a code different from 0 if the data is not valid. The function translate the codes
- * to an object which will be returnded.
+ * to an object which will be returned.
+ * @async
  *  @param {String} trainingDataPath The path to the location of the trainingData. The path must be relative from the location of this file.
  * @returns An success object or an error object. The success object contains the following properties: {status: 'ok', message: 'Training data is valid', code : 0}.
  * The error object contains the following properties: {status: 'error', error: [A String describing the validation error that occured], code : [The code that
@@ -94,7 +95,8 @@ async function validateTrainingData(trainingDataPath) {
 /**
  * These function make the call of the function to get the Tif for the given Training data. These function will also try and catch these 
  * R function, to catch all the errors that could maybe occur. If the R function run successsfully these function will return the output, if not
- * it will return an error object.  
+ * it will return an error object.
+ * @async  
  * @param {String} trainingDataPath The relative path to the location of the trainingData. The Training Data can be formatted as Geopackage or
  * GeoJSON. Will be passed to R.
  * @param {String} datetime The start and end Date. Must be formatted as RFC3339 String. Start date must be lower than end date. Format is: 
@@ -137,6 +139,7 @@ async function getTrainingDataTif(trainingDataPath, datetime, limit, desiredBand
  * These function make the call of the function to get the Tif for the given AOI data. These function will also try and catch these 
  * R function, to catch all the errors that could maybe occur. If the R function run successsfully these function will return the output, if not
  * it will return an error object.
+ * @async
  * @param {Number} bottomLeftX The Number of the longitude coordinate of the bottom left corner of the AOI. Must be given in WGS84. Will 
  * be passed to R. 
  * @param {Number} bottomLeftY The Number of the latitude coordinate of the bottom left corner of the AOI. Must be given in WGS84. Will 
@@ -232,6 +235,9 @@ function processInputData(data) {
  * The function shift the incoming start and end date by one day. After that it will return the start and end date as a single string in the ISO format.
  * @param {String} startDateString A string representing the start date. Must be in the format: 'YYYY-MM-DD'.  
  * @param {String} endDateString A string representing the end date. Must be in the format: 'YYYY-MM-DD'.
+ * @example <caption>Example of the output</caption>
+ * shiftDatesOneDay('2019-01-01', '2019-01-02')
+ * //returns '2019-01-02/2019-01-03'
  * @returns The string representing the start and end date in a single String. Format: 'YYYY-MM-DD/YYYY-MM-DD'.
  */
 function shiftDatesOneDay(startDateString, endDateString) {
@@ -249,7 +255,8 @@ function shiftDatesOneDay(startDateString, endDateString) {
 
 /**
  * The functions processInoutData and getTraingDataTif where combinded here to a single function, which can be called from app.js if its
- * get data for starting a calculation.  
+ * get data for starting a calculation.
+ * @async  
  * @param {{
  *          bottomLeftlng: Number,
  *          bottomLeftlat: Number,
