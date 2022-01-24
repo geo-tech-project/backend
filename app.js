@@ -1,30 +1,89 @@
+/**
+ * @constant {module} - Swagger Express module
+ */
 const swaggerUi = require('swagger-ui-express');
+
+/**
+ * @constant {module} - The swagger api documentation saved in a json object 
+ */
 const {
     apiDocumentation
-} = require('./docs/api/apidoc.js');
+} = require('./doc/api/apidoc.js');
 
+/**
+ * @constant {module} - The express module
+ */
 const express = require('express');
+
+
+/**
+ * @constant {module} - The path module
+ */
 const path = require('path');
+
+/**
+ * @constant {module} - The multer module
+ */
 const multer = require('multer');
+
+/**
+ * @constant {module} - The body-parser module
+ */
 const bodyParser = require('body-parser');
+
+/**
+ * @constant {module} - The fs module
+ */
 const fs = require('fs');
+
+/**
+ * @constant {Object} - The functions from the ./useR_AOI_TD.js file
+ * @see ./useR_AOI_TD.js
+ */
 const {
     getData,
     validateTrainingData
 } = require('./useR_AOI_TD');
+
+/**
+ * @constant {Object} - The function from the ./useR_ML_AOA.js file
+ * @see ./useR_ML_AOA.js
+ */
 const {
     calculateAOA
 } = require('./useR_ML_AOA');
+
+/**
+ * @constant {module} - The cors module
+ */
 var cors = require('cors');
+
+/**
+ * @constant {module} - The R-integration module
+ */
 const R = require('r-integration');
+
+/**
+ * @constant {module} - The https module
+ */
 const https = require('https')
+
+/**
+ * @constant {module} - The resolveSoa function from the dns module
+ */
 const {
     resolveSoa
 } = require('dns');
 
+/**
+ * @constant {number} - The port of the express server. If a port iss specified in the environment variable PORT, the port is overwritten, else
+ * the port is set to 8781
+ */
 const PORT = process.env.PORT || 8781;
 
-// storage for multer upload
+/**
+ * The storage for the files send to multer
+ */
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "./public/uploads");
@@ -38,7 +97,12 @@ let upload = multer({
     storage: storage
 });
 
+/**
+ * @constant {Express} - The express app
+ */
 const app = express();
+
+//Setting up the app
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({
@@ -254,6 +318,13 @@ app.get('/markdown', (req, res, next) => {
     });
 })
 
+/**
+ * Checking if the file at the given path actual exists. If not the function send a 404 error to the given response object.
+ * If the file exists, the function does nothing and returns void.  
+ * @param {String} filePath - The path were the function looking for the possible file. The path should be given absolute.
+ * @param {Response} res - The response object were the function sends the error if the file does not exist.
+ * @returns {void} - The function returns void.
+ */
 function checkFileNotFound(filePath, res) {
     fs.access(filePath, fs.constants.F_OK, (err) => {
         if (err) {
@@ -296,6 +367,8 @@ function deleteFiles(dirPath, fileName) {
 }
 
 app.use('/documentation', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
+
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 });
