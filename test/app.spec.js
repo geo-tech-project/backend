@@ -58,7 +58,7 @@ describe('#calculateNewModelAndAOA()', function () {
             expect(result)
                 .to.be.a('Object')
 
-        })
+        }).timeout(300000)
     })
 })
 
@@ -71,7 +71,7 @@ describe('#calculateAOAwithGivenModel()', function () {
             expect(result)
                 .to.be.a('Object')
         })
-    })
+    }).timeout(300000)
 })
 
 
@@ -134,5 +134,5 @@ describe("POST /start", function () {
                 mtry: null
             })
             .expect(200)
-    })
+    }).timeout(300000)
 })
