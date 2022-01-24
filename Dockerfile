@@ -15,13 +15,14 @@ COPY package.json /usr/src/app
 RUN npm install
 
 RUN apt-get update && apt-get install -y \
-    build-essential curl libcurl4-openssl-dev apt-utils libjq-dev\
+    build-essential curl libcurl4-openssl-dev apt-utils libjq-dev systemctl\
     r-base r-base-dev libssl-dev libprotobuf-dev protobuf-compiler\
     libudunits2-dev libproj-dev libgdal-dev libgeos-dev libssl-dev libv8-dev\
     && rm -rf /var/lib/apt/lists/*
 RUN apt install -y libprotobuf-dev protobuf-compiler
 RUN apt-get upgrade
 
+RUN R -e "Sys.setenv(TZ='Europe/Berlin')"
 RUN R -e "install.packages('terra', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('rgdal', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('rgeos', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
