@@ -1,6 +1,79 @@
 const request = require("supertest")
 const assert = require('assert')
 const app = require("../app.js")
+var expect = require('chai').expect;
+var { calculateAOA, processInputData, calculateAOAwithGivenModel, calculateNewModelAndAOA } = require("../useR_ML_AOA");
+
+var inputObjectModel = {
+    option: 'model',
+    filePath: 'model.RDS',
+    channels: ['B02', 'B03', 'B04', 'B05'],
+}
+
+var inputObjectData = {
+    option: 'data',
+    filePath: './R/training_data/trainingsdaten_koeln_4326.gpkg',
+    channels: ['B02', 'B03', 'B04', 'B05'],
+    algorithm: "rf",
+    mtry: 2
+}
+
+//Testing processInpuData with given model
+describe('#processInputDataModel()', function () {
+    context('with json argument', function () {
+        it('should return object', function () {
+
+            var result = processInputData(inputObjectModel);
+
+            expect(result)
+                .to.be.a('Object')
+
+        })
+    })
+})
+
+//Testing processInpuData with training data
+describe('#processInputDataTrainingData()', function () {
+    context('with json argument', function () {
+        it('should return object', function () {
+
+            var result = processInputData(inputObjectData);
+
+            expect(result)
+                .to.be.a('Object')
+
+        })
+    })
+})
+
+//Testing calculateNewModelAndAOA 
+describe('#calculateNewModelAndAOA()', function () {
+    context('with json argument', function () {
+        it("should return model", function () {
+
+            var result = calculateNewModelAndAOA("rf", './R/training_data/trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
+
+            console.log(result)
+
+            expect(result)
+                .to.be.a('Object')
+
+        })
+    })
+})
+
+//Testing calculateAOAwithGivenModel
+describe('#calculateAOAwithGivenModel()', function () {
+    context('with object argument', function () {
+        it('should return object', async function () {
+            var result = await calculateAOAwithGivenModel('model.RDS', ['B02', 'B03', 'B04', 'B05'])
+
+            expect(result)
+                .to.be.a('Object')
+        })
+    })
+})
+
 
 
 //Test of demo route
@@ -35,29 +108,31 @@ describe("POST /start", function () {
 
 // Test of start route 
 describe("POST /start", function () {
+    this.timeout(30000)
     it("Should return status code 200 if function gets started", async function () {
         await request(app)
             .post("/start")
             .send({
                 whereareyoufrom: 'map',
-                topleftlat: 51.95040183546208,
-                topleftlng: 7.608311651295573,
-                bottomleftlat: 51.96944221561243,
-                bottomleftlng: 7.608311651295573,
-                bottomrightlat: 51.96944221561243,
-                bottomrightlng: 7.639223889105581,
-                toprightlat: 51.95040183546208,
-                toprightlng: 7.639223889105581,
+                topleftlat: 51.94630759340601,
+                topleftlat: 51.94630759340601,
+                topleftlng: 7.603957437562283,
+                bottomleftlat: 51.972977513862844,
+                bottomleftlng: 7.603957437562283,
+                bottomrightlat: 51.972977513862844,
+                bottomrightlng: 7.662288948274864,
+                toprightlat: 51.94630759340601,
+                toprightlng: 7.662288948274864,
                 option: 'data',
                 algorithm: 'rf',
                 startDate: '2021-07-03T22:00:00.000Z',
-                endDate: '2021-07-24T22:00:00.000Z',
-                filename: 'trainingsdaten_koeln_4326.gpkg',
+                endDate: '2021-07-17T22:00:00.000Z',
+                filename: './R/training_data/trainingsdaten_koeln_4326.gpkg',
                 resolution: '400',
                 channels: ['B02', 'B03', 'B04', 'B05'],
-                coverage: 71,
-                mtry: 2
+                coverage: 50,
+                mtry: null
             })
             .expect(200)
-    }).timeout(300000)
+    })
 })
