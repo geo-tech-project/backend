@@ -162,6 +162,15 @@ app.get("/async", (req, res, next) => {
         })
 })
 
+app.get('/test', (req, res, next) => {
+    console.log("test")
+    R.callMethodAsync(__dirname + '/R/TEST.R', "test", ["test"])
+        .then((result) => {
+            console.log(result)
+            res.send(result)
+        })
+})
+
 
 // route to upload file only for multer
 app.post('/upload', upload.single('file'), function (req, res) {

@@ -1,5 +1,5 @@
 # R Script for estimation applicabillity tool
-  
+
 #####################
 # Training function #
 #####################
@@ -11,7 +11,7 @@
 # In the end I want to be able to download the my new model.
 
 # When is the script used/executed?
-################################### 
+###################################
 # If the user chooses a default machine learning algorithm and provides training data.
 
 # What does the script do?
@@ -48,83 +48,89 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   library(sf)
   library(Orcs)
   library(jsonlite)
-  
+
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/trainingData.tif")
-  names(stack) <-  desiredBands
-  
+  # names(stack) <-  desiredBands
+  desiredBands <- names(stack)
+
   # load training data
   trainSites <- read_sf(trainingDataPath)
   trainSites <- st_transform(trainSites, crs = crs(stack))
-  
+
   # Ergänze PolygonID-Spalte falls nicht schon vorhanden, um später mit extrahierten Pixeln zu mergen
   trainSites$PolygonID <- 1:nrow(trainSites)
-  
+
   # Extrahiere Pixel aus den Stack, die vollständig (das Zentrum des Pixels wird abgedeckt) vom Polygon abgedeckt werden
-  extr_pixel <- extract(stack, trainSites, df=TRUE)
-  
-  # Merge extrahierte Pixel mit den zusätzlichen Informationen aus den 
-  extr <- merge(extr_pixel, trainSites, by.x="ID", by.y="PolygonID")
-  
+  extr_pixel <- extract(stack, trainSites, df = TRUE)
+
+  # Merge extrahierte Pixel mit den zusätzlichen Informationen aus den
+  extr <- merge(extr_pixel, trainSites, by.x = "ID", by.y = "PolygonID")
+
   # Prädiktoren und Response festlegen
   predictors <- names(stack)
-  predictors <- predictors[! predictors %in% c('SCL')]
+  predictors <- predictors[!predictors %in% c("SCL")]
   response <- "Label"
-  
-  
+
+
   # 50% der Pixel eines jeden Polygons für das Modeltraining extrahieren
-  trainids <- createDataPartition(extr$ID,list=FALSE,p=1)
-  trainDat <- extr[trainids,]
+  trainids <- createDataPartition(extr$ID, list = FALSE, p = 1)
+  trainDat <- extr[trainids, ]
 
   # Sicherstellen das kein NA in Prädiktoren enthalten ist:
-  trainDat <- trainDat[complete.cases(trainDat[,predictors]),]  
-  
-  
-  
+  trainDat <- trainDat[complete.cases(trainDat[, predictors]), ]
+
+
+
   # Drei Folds für die Spatial-Cross-Validation im Modell Training definieren und traincontrol festlegen
-  indices <- CreateSpacetimeFolds(trainDat,spacevar = "ID",k=3,class="Label")
-  ctrl <- trainControl(method="cv", 
-                       index = indices$index,
-                       savePredictions = TRUE)
+  indices <- CreateSpacetimeFolds(trainDat, spacevar = "ID", k = 3, class = "Label")
+  ctrl <- trainControl(
+    method = "cv",
+    index = indices$index,
+    savePredictions = TRUE
+  )
 
-  #Erstellen eines Grids für die Hyperparameter des jeweiligen Algorithmus: 
-  #hyperparameter <- fromJSON(data)
-  if(algorithm == 'rf') {
-      tune_grid <- expand.grid( mtry  = c(hyperparameter[1]))
-  } else if (algorithm == 'svmRadial'){
-      tune_grid <- expand.grid( sigma = c(hyperparameter[1]),
-                                C     = c(hyperparameter[2])) 
+  # Erstellen eines Grids für die Hyperparameter des jeweiligen Algorithmus:
+  # hyperparameter <- fromJSON(data)
+  if (algorithm == "rf") {
+    tune_grid <- expand.grid(mtry = c(hyperparameter[1]))
+  } else if (algorithm == "svmRadial") {
+    tune_grid <- expand.grid(
+      sigma = c(hyperparameter[1]),
+      C = c(hyperparameter[2])
+    )
   }
- # else if (algorithm == 'xgbTree') {
- #     tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
- #                               max_depth         = c(hyperparameter[2]),
- #                               eta               = c(hyperparameter[3]),
- #                               gamma             = c(hyperparameter[4]),
- #                               colsample_bytree  = c(hyperparameter[5]),
- #                               min_child_weight  = c(hyperparameter[6]),
- #                               subsample         = c(hyperparameter[7]))
- # } 
+  # else if (algorithm == 'xgbTree') {
+  #     tune_grid <- expand.grid( nrounds           = c(hyperparameter[1]),
+  #                               max_depth         = c(hyperparameter[2]),
+  #                               eta               = c(hyperparameter[3]),
+  #                               gamma             = c(hyperparameter[4]),
+  #                               colsample_bytree  = c(hyperparameter[5]),
+  #                               min_child_weight  = c(hyperparameter[6]),
+  #                               subsample         = c(hyperparameter[7]))
+  # }
 
 
-  
-  #Erstellen (Training) des Models
-  model <- train(trainDat[,predictors],
-                 trainDat[,response],
-                 method=algorithm,
-                 metric="Kappa",
-                 trControl=ctrl,
-                 tuneGrid = tune_grid)
-                 #tuneLength = 10) // bin mir nicht sicher welche Auswirkung der Parameter hat
-                 #importance=TRUE,
-                 #ntree=trees)
-  
 
-  files <- list.files(path="./R/model/")
-  file.remove(paste("./R/model/",files[1],sep=""))
+  # Erstellen (Training) des Models
+  model <- train(trainDat[, predictors],
+    trainDat[, response],
+    method = algorithm,
+    metric = "Kappa",
+    trControl = ctrl,
+    tuneGrid = tune_grid
+  )
+  # tuneLength = 10) // bin mir nicht sicher welche Auswirkung der Parameter hat
+  # importance=TRUE,
+  # ntree=trees)
 
-  saveRDS(model, file="R/model/model.RDS")
 
-  print('Model was created successfully')  
+  files <- list.files(path = "./R/model/")
+  file.remove(paste("./R/model/", files[1], sep = ""))
+
+  saveRDS(model, file = "R/model/model.RDS")
+
+  print("Model was created successfully")
 }
 
 
@@ -146,7 +152,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 # recomended training locations.
 
 # When is the script used/executed?
-################################### 
+###################################
 # In all cases of client usage.
 
 # What does the script do?
@@ -170,10 +176,10 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 # desiredBands = c("B02", "B03", "B04", "SCL")
 
 classifyAndAOA <- function(modelPath, desiredBands) {
-  
+
   # load packages
   library(raster)
-  library(CAST) 
+  library(CAST)
   library(tmap)
   library(latticeExtra)
   library(doParallel)
@@ -184,9 +190,9 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(geojson)
   library(rjson)
 
-  files <- list.files(path="./R/prediction_and_aoa/")
+  files <- list.files(path = "./R/prediction_and_aoa/")
   for (i in 1:length(files)) {
-    file.remove(paste("./R/prediction_and_aoa/",files[i],sep=""))
+    file.remove(paste("./R/prediction_and_aoa/", files[i], sep = ""))
   }
 
   # load raster stack from data directory
@@ -195,51 +201,52 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # load raster stack from data directory
   model <- readRDS(modelPath)
-  
+
   # prediction
-  prediction <- predict(stack,model)
+  prediction <- predict(stack, model)
 
   # write prediction raster to tif in file directory
   writeRaster(prediction, "R/prediction_and_aoa/prediction.tif", overwrite = TRUE)
-  
+
   # parallelization
   cl <- makeCluster(4)
   registerDoParallel(cl)
 
   # calculate AOA
-  AOA <- aoa(stack,model,cl=cl)
+  AOA <- aoa(stack, model, cl = cl)
 
   # write prediction raster to tif in file directory
-  writeRaster(AOA$AOA, "R/prediction_and_aoa/aoa.tif", overwrite=TRUE)
-  
+  writeRaster(AOA$AOA, "R/prediction_and_aoa/aoa.tif", overwrite = TRUE)
+
   # Calculate a MultiPolygon from the AOA, which can be seen as the area where the user needs to find further training data
   x <- AOA$AOA@data@values
-  furtherTrainAreas <- rasterToPolygons(AOA$AOA, fun = function(x) {x == 0}, dissolve = TRUE)
+  furtherTrainAreas <- rasterToPolygons(AOA$AOA, fun = function(x) {
+    x == 0
+  }, dissolve = TRUE)
   furtherTrainAreas <- spTransform(furtherTrainAreas, CRS("+init=epsg:4326"))
-  
+
   furtherTrainAreas <- spsample(furtherTrainAreas, n = 30, type = "random")
-  
-  files <- list.files(path="./R/further_train_areas/")
-  file.remove(paste("./R/further_train_areas/",files[1],sep=""))
-  
+
+  files <- list.files(path = "./R/further_train_areas/")
+  file.remove(paste("./R/further_train_areas/", files[1], sep = ""))
+
   # Saves the calculated AOnA to a GeoJSON-file
   furtherTrainAreasGeoJSON <- as.geojson(furtherTrainAreas)
   geo_write(furtherTrainAreasGeoJSON, "R/further_train_areas/furtherTrainAreas.geojson")
 
   # save all classes of prediction to json file for web usage
   vector <- c()
-  if(model$method == 'rf') {
-    for(class in model$finalModel$classes) {
+  if (model$method == "rf") {
+    for (class in model$finalModel$classes) {
       vector <- c(vector, class)
     }
-  } else if (model$method == 'svmRadial'){
-    for(class in model$finalModel@lev) {
+  } else if (model$method == "svmRadial") {
+    for (class in model$finalModel@lev) {
       vector <- c(vector, class)
     }
   }
   json <- rjson::toJSON(vector)
   write(json, "R/prediction_and_aoa/classes.json")
-  
-  print('Calculation of prediction and AOA was successfull')
-}
 
+  print("Calculation of prediction and AOA was successfull")
+}

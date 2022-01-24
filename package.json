@@ -28,7 +28,7 @@
     "multer": "^1.4.3",
     "ng2-file-upload": "^1.4.0",
     "nodemon": "^2.0.15",
-    "r-integration": "^1.4.0",
+    "r-integration": "^1.7.0",
     "supertest": "^6.2.2"
   }
 }
