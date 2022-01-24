@@ -39,6 +39,8 @@ describe('#processInputDataTrainingData()', function () {
 
             var result = processInputData(inputObjectData);
 
+            console.log("result processInputDataTrainingData: ", result)
+
             expect(result)
                 .to.be.a('Object')
 
@@ -53,7 +55,7 @@ describe('#calculateNewModelAndAOA()', function () {
 
             var result = calculateNewModelAndAOA("rf", './R/training_data/trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
 
-            console.log(result)
+            console.log("result calculateNewModelAndAOA: ", result)
 
             expect(result)
                 .to.be.a('Object')
@@ -70,8 +72,8 @@ describe('#calculateAOAwithGivenModel()', function () {
 
             expect(result)
                 .to.be.a('Object')
-        })
-    }).timeout(300000)
+        }).timeout(300000)
+    })
 })
 
 
