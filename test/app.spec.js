@@ -12,15 +12,17 @@ var inputObjectModel = {
 
 var inputObjectData = {
     option: 'data',
-    filePath: './R/training_data/trainingsdaten_koeln_4326.gpkg',
+    filePath: 'trainingsdaten_koeln_4326.gpkg',
     channels: ['B02', 'B03', 'B04', 'B05'],
     algorithm: "rf",
     mtry: 2
 }
 
+//'./R/training_data/trainingsdaten_koeln_4326.gpkg'
+
 //Testing processInpuData with given model
 describe('#processInputDataModel()', function () {
-    context('with json argument', function () {
+    context('with input argument', function () {
         it('should return object', function () {
 
             var result = processInputData(inputObjectModel);
@@ -34,7 +36,7 @@ describe('#processInputDataModel()', function () {
 
 //Testing processInpuData with training data
 describe('#processInputDataTrainingData()', function () {
-    context('with json argument', function () {
+    context('with input argument', function () {
         it('should return object', function () {
 
             var result = processInputData(inputObjectData);
@@ -50,10 +52,10 @@ describe('#processInputDataTrainingData()', function () {
 
 //Testing calculateNewModelAndAOA 
 describe('#calculateNewModelAndAOA()', function () {
-    context('with json argument', function () {
-        it("should return model", async function () {
+    context('with input argument', function () {
+        it("should return object", async function () {
 
-            var result = await calculateNewModelAndAOA("rf", './R/training_data/trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
+            var result = await calculateNewModelAndAOA("rf", 'trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
 
             console.log("result calculateNewModelAndAOA: ", result)
 
@@ -64,11 +66,25 @@ describe('#calculateNewModelAndAOA()', function () {
     })
 })
 
+//Testing calculateAOA processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands
+describe('#calculateAOA()', function () {
+    context('with input argument', function () {
+        it("should return object", async function () {
+            var result = await calculateAOA("rf", "trainingsdaten_muenster_32632.gpkg", [2], ['B02', 'B03', 'B04', 'B05']);
+            expect(result)
+                .to.be.a('Object')
+        }).timeout(300000)
+    })
+})
+
+
 //Testing calculateAOAwithGivenModel
 describe('#calculateAOAwithGivenModel()', function () {
     context('with object argument', function () {
         it('should return object', async function () {
             var result = await calculateAOAwithGivenModel('model.RDS', ['B02', 'B03', 'B04', 'B05'])
+
+            console.log("result calculateAOAwithGivenModel: ", result)
 
             expect(result)
                 .to.be.a('Object')
