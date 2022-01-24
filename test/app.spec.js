@@ -181,7 +181,7 @@ describe("POST /start", function () {
                 algorithm: 'rf',
                 startDate: '2021-07-03T22:00:00.000Z',
                 endDate: '2021-07-17T22:00:00.000Z',
-                filename: 'trainingsdaten_muenster_32632.gpkg',
+                filename: './R/training_datatrainingsdaten_muenster_32632.gpkg',
                 resolution: '400',
                 channels: ['B02', 'B03', 'B04', 'B05'],
                 coverage: 50,
