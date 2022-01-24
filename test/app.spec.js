@@ -51,9 +51,9 @@ describe('#processInputDataTrainingData()', function () {
 //Testing calculateNewModelAndAOA 
 describe('#calculateNewModelAndAOA()', function () {
     context('with json argument', function () {
-        it("should return model", function () {
+        it("should return model", async function () {
 
-            var result = calculateNewModelAndAOA("rf", './R/training_data/trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
+            var result = await calculateNewModelAndAOA("rf", './R/training_data/trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
 
             console.log("result calculateNewModelAndAOA: ", result)
 
