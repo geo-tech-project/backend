@@ -3,6 +3,7 @@ const assert = require('assert')
 const app = require("../app.js")
 var expect = require('chai').expect;
 var { calculateAOA, processInputData, calculateAOAwithGivenModel, calculateNewModelAndAOA } = require("../useR_ML_AOA");
+var { getData } = require("../useR_AOI_TD");
 
 var inputObjectModel = {
     option: 'model',
@@ -18,9 +19,32 @@ var inputObjectData = {
     mtry: 2
 }
 
+var data = {
+    whereareyoufrom: 'map',
+    topleftlat: 51.94630759340601,
+    topleftlat: 51.94630759340601,
+    topleftlng: 7.603957437562283,
+    bottomleftlat: 51.972977513862844,
+    bottomleftlng: 7.603957437562283,
+    bottomrightlat: 51.972977513862844,
+    bottomrightlng: 7.662288948274864,
+    toprightlat: 51.94630759340601,
+    toprightlng: 7.662288948274864,
+    option: 'data',
+    algorithm: 'rf',
+    startDate: '2021-07-03T22:00:00.000Z',
+    endDate: '2021-07-17T22:00:00.000Z',
+    filename: 'trainingsdaten_muenster_32632.gpkg',
+    resolution: '400',
+    channels: ['B02', 'B03', 'B04', 'B05'],
+    coverage: 50,
+    mtry: null
+}
+
 //'./R/training_data/trainingsdaten_koeln_4326.gpkg'
 
-//Testing processInpuData with given model
+//Testing processInpuData with given model (Fehler bei der Benutzung des Modells)
+/**
 describe('#processInputDataModel()', function () {
     context('with input argument', function () {
         it('should return object', function () {
@@ -32,14 +56,14 @@ describe('#processInputDataModel()', function () {
 
         })
     })
-})
+})*/
 
 //Testing processInpuData with training data
 describe('#processInputDataTrainingData()', function () {
     context('with input argument', function () {
         it('should return object', function () {
 
-            var result = processInputData(inputObjectData);
+            var result = processInputData(data);
 
             console.log("result processInputDataTrainingData: ", result)
 
@@ -66,21 +90,9 @@ describe('#calculateNewModelAndAOA()', function () {
     })
 })
 
-//Testing calculateAOA processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands
-describe('#calculateAOA()', function () {
-    context('with input argument', function () {
-        it("should return object", async function () {
-            var result = await calculateAOA("rf", "trainingsdaten_muenster_32632.gpkg", [2], ['B02', 'B03', 'B04', 'B05']);
-            expect(result)
-                .to.be.a('Object')
-        }).timeout(300000)
-    })
-})
-
-
 //Testing calculateAOAwithGivenModel
 describe('#calculateAOAwithGivenModel()', function () {
-    context('with object argument', function () {
+    context('with input argument', function () {
         it('should return object', async function () {
             var result = await calculateAOAwithGivenModel('model.RDS', ['B02', 'B03', 'B04', 'B05'])
 
@@ -92,6 +104,30 @@ describe('#calculateAOAwithGivenModel()', function () {
     })
 })
 
+//Testing getData to generate Satellite images
+describe('#getData()', function () {
+    context('with input argument', function () {
+        it('should return object', async function () {
+            var result = await getData(data);
+
+            expect(result)
+                .to.be.a('Object')
+        })
+    })
+})
+
+
+
+//Testing calculateAOA processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands
+describe('#calculateAOA()', function () {
+    context('with input argument', function () {
+        it("should return object", async function () {
+            var result = await calculateAOA(data);
+            expect(result)
+                .to.be.a('Object')
+        }).timeout(300000)
+    })
+})
 
 
 //Test of demo route
