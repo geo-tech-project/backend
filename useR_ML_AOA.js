@@ -2,12 +2,12 @@
 /**
  * @constant {module} R  R package to execute R Files, commands and methods
  */
- const R = require('r-integration');
+const R = require('r-integration');
 
- /**
-  * @constant {String} rFilePath Path to the R File where the functions are stored
-  */
- const rFilePath = './R/ML_AOA.R';
+/**
+ * @constant {String} rFilePath Path to the R File where the functions are stored
+ */
+const rFilePath = './R/ML_AOA.R';
 
 /**
  * The function calls the classifyAndAOA function of the ML_AOA-R-script. It passes the path of the model
@@ -22,16 +22,16 @@
  * @returns the result of the R-Skript. Either error object or String that confirms the successfull calculations.
  */
 async function calculateAOAwithGivenModel(modelPath, desiredBands) {
-    
+
     let output = {};
-    
-    try{
-        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: modelPath, desiredBands: desiredBands})    
+
+    try {
+        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", { modelPath: modelPath, desiredBands: desiredBands })
     } catch (error) {
         output.classifyAndAOA = ["2"]
     }
     return output;
- }
+}
 
 /**
  * The function calls the training function of the ML_AOA-R-script. It passes the algorithm (desired by the user), 
@@ -52,7 +52,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
     let output = {}
 
     try {
-        output.training = await R.callMethodAsync(rFilePath, "training", {algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands: desiredBands})
+        output.training = await R.callMethodAsync(rFilePath, "training", { algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands: desiredBands })
     } catch (error) {
         output.training = ["2"]
         output.classifyAndAOA = ["3"]
@@ -60,13 +60,13 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
     }
 
     try {
-        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", {modelPath: "R/model/model.RDS", desiredBands: desiredBands})
+        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", { modelPath: "R/model/model.RDS", desiredBands: desiredBands })
     } catch (error) {
         output.classifyAndAOA = ["2"]
-    }    
-    
+    }
+
     return output;
- }
+}
 
 
 /**
@@ -98,15 +98,15 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
 function processInputData(data) {
     var out = {
         option: data.option,
-        filePath: './public/uploads/' + data.filename, 
+        filePath: './public/uploads/' + data.filename,
         desiredBands: data.channels
     }
-    if(data.option == 'data') {
-        if(data.algorithm == "rf") {
+    if (data.option == 'data') {
+        if (data.algorithm == "rf") {
             out.algorithm = "rf";
             out.hyperparameter = [data.mtry]
         } else if (data.algorithm == "svmRadial") {
-            out.algorithm ="svmRadial"
+            out.algorithm = "svmRadial"
             out.hyperparameter = [data.sigma, data.cost]
         }
     }
@@ -162,7 +162,7 @@ async function calculateAOA(data) {
             console.log("model.RDS was successfully created")
             console.log("prediction.tif was successfully created")
             console.log("aoa.tif was successfully created")
-        } else if (output.training[0] === '2' && output.classifyAndAOA[0] === '3'){
+        } else if (output.training[0] === '2' && output.classifyAndAOA[0] === '3') {
             output.training = {
                 status: 'error',
                 error: 'Model training: Unexpected error occured',
@@ -203,7 +203,7 @@ async function calculateAOA(data) {
             }
             console.log("prediction.tif was successfully created")
             console.log("aoa.tif was successfully created")
-        } else if (output.classifyAndAOA[0] === '1'){
+        } else if (output.classifyAndAOA[0] === '1') {
             output.classifyAndAOA = {
                 status: 'error',
                 error: 'There are predictors in the model which are are missing in the Sentinel data',
@@ -234,10 +234,10 @@ async function calculateAOA(data) {
  * 1: predictor of model not in the given sentinel tif (only relevant if working with user model)
  * 2: unexpected error
  * 3: not executed (only relevant if working with training data)  
- */ 
+ */
 
 
 
- module.exports = {
-    calculateAOA
+module.exports = {
+    calculateAOA, calculateAOAwithGivenModel, calculateNewModelAndAOA, processInputData
 };
