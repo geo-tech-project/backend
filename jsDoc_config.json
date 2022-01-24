@@ -1,0 +1,14 @@
+{
+    "source": {
+        "include": [
+            "./useR_AOI_TD.js",
+            "./useR_ML_AOA.js",
+            "./app.js",
+            "./test/app.spec.js"
+        ],
+        "exclude": [
+            "./node_modules"
+        ]
+
+    }
+}

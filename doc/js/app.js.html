@@ -26,23 +26,92 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const express = require('express');
-const path = require('path');
-const multer = require('multer');
-const bodyParser = require('body-parser');
-const fs = require('fs');
+            <pre class="prettyprint source linenums"><code>/**
+ * @constant {module} - Swagger Express module
+ */
+const swaggerUi = require('swagger-ui-express');
+
+/**
+ * @constant {module} - The swagger api documentation saved in a json object 
+ */
 const {
-    getData, validateTrainingData
+    apiDocumentation
+} = require('./doc/api/apidoc.js');
+
+/**
+ * @constant {module} - The express module
+ */
+const express = require('express');
+
+
+/**
+ * @constant {module} - The path module
+ */
+const path = require('path');
+
+/**
+ * @constant {module} - The multer module
+ */
+const multer = require('multer');
+
+/**
+ * @constant {module} - The body-parser module
+ */
+const bodyParser = require('body-parser');
+
+/**
+ * @constant {module} - The fs module
+ */
+const fs = require('fs');
+
+/**
+ * @constant {Object} - The functions from the ./useR_AOI_TD.js file
+ * @see ./useR_AOI_TD.js
+ */
+const {
+    getData,
+    validateTrainingData
 } = require('./useR_AOI_TD');
+
+/**
+ * @constant {Object} - The function from the ./useR_ML_AOA.js file
+ * @see ./useR_ML_AOA.js
+ */
 const {
     calculateAOA
 } = require('./useR_ML_AOA');
+
+/**
+ * @constant {module} - The cors module
+ */
 var cors = require('cors');
+
+/**
+ * @constant {module} - The R-integration module
+ */
 const R = require('r-integration');
 
+/**
+ * @constant {module} - The https module
+ */
+const https = require('https')
+
+/**
+ * @constant {module} - The resolveSoa function from the dns module
+ */
+const {
+    resolveSoa
+} = require('dns');
+
+/**
+ * @constant {number} - The port of the express server. If a port iss specified in the environment variable PORT, the port is overwritten, else
+ * the port is set to 8781
+ */
 const PORT = process.env.PORT || 8781;
 
-// storage for multer upload
+/**
+ * The storage for the files send to multer
+ */
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "./public/uploads");
@@ -56,7 +125,12 @@ let upload = multer({
     storage: storage
 });
 
+/**
+ * @constant {Express} - The express app
+ */
 const app = express();
+
+//Setting up the app
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({
@@ -123,31 +197,43 @@ app.post('/start', async (req, res, next) => {
 // route to return uploaded file
 // DEFAULT
 app.get('/file/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
+    const filePath = path.join(__dirname, 'public/uploads', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 app.get('/model/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/model/', req.params.name));
+    const filePath = path.join(__dirname, './R/model/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // Prediction and AOA
 app.get('/predictionaoa/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/prediction_and_aoa/', req.params.name));
+    const filePath = path.join(__dirname, './R/prediction_and_aoa/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // Sentinel images
 app.get('/processedsentinelimages/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/processed_sentinel_images/', req.params.name));
+    const filePath = path.join(__dirname, './R/processed_sentinel_images/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // Further train areas
 app.get('/furthertrainareas/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './R/further_train_areas/', req.params.name));
+    const filePath = path.join(__dirname, './R/further_train_areas/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 // training polygons
 app.get('/trainingdata/:name', (req, res, next) => {
-    res.sendFile(path.join(__dirname, './public/uploads/', req.params.name));
+    const filePath = path.join(__dirname, './public/uploads/', req.params.name);
+    checkFileNotFound(filePath, res);
+    res.sendFile(filePath);
 })
 
 app.get('/marker', (req, res, next) => {
@@ -171,9 +257,9 @@ app.get("/async", (req, res, next) => {
     // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
     //let trees = 75;
     callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {
-        algorithm: 'rf',
-        data: '[3]'
-    }) //Hyperparameter für die Algorithmen
+            algorithm: 'rf',
+            data: '[3]'
+        }) //Hyperparameter für die Algorithmen
         .then((result) => {
             console.log(result)
             callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
@@ -209,13 +295,18 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
 app.post("/deleteFiles", async (req, res) => {
     console.log("delete files from public/uploads");
-    let json = { text: "ok" }
+    let json = {
+        text: "The files were deleted successfully"
+    }
     try {
         await deleteFiles(__dirname + "/public/uploads", req.body.file);
         res.status(200).send(json);
     } catch (err) {
         console.log(err);
-        res.status(500).send(err);
+        res.status(500).send({
+            "text": "Error while deleting files",
+            "error": err
+        });
     }
 });
 
@@ -230,12 +321,49 @@ app.post("/getGeoJSON", async (req, res) => {
             console.error(error);
             res.send(error);
         })
-    }
-    catch (err) {
+    } catch (err) {
         res.status(400).send(err);
     }
 });
 
+// get markdown file from repo
+app.get('/markdown', (req, res, next) => {
+    https.get('https://raw.githubusercontent.com/geo-tech-project/frontend/main/README.md', (resp) => {
+        let data = '';
+
+        // A chunk of data has been received.
+        resp.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        // The whole response has been received. Print out the result.
+        resp.on('end', () => {
+            res.send(data)
+        });
+
+    }).on("error", (err) => {
+        console.log("Error: " + err.message);
+    });
+})
+
+/**
+ * Checking if the file at the given path actual exists. If not the function send a 404 error to the given response object.
+ * If the file exists, the function does nothing and returns void.  
+ * @param {String} filePath - The path were the function looking for the possible file. The path should be given absolute.
+ * @param {Response} res - The response object were the function sends the error if the file does not exist.
+ * @returns {void} - The function returns void.
+ */
+function checkFileNotFound(filePath, res) {
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            res.status(404).send({
+                status: "error",
+                message: 'File not found'
+            });
+            return;
+        }
+    });
+}
 /**
  * Test function for async calls
  * @code function callMethodAsync(path, method, args) { test(); }
@@ -265,11 +393,15 @@ function deleteFiles(dirPath, fileName) {
         });
     });
 }
+
+app.use('/documentation', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
+
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 });
 
-module.exports = app; </code></pre>
+module.exports = app;</code></pre>
         </article>
     </section>
 
@@ -279,13 +411,13 @@ module.exports = app; </code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#deleteFiles">deleteFiles</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#app">app</a></li><li><a href="global.html#bodyParser">bodyParser</a></li><li><a href="global.html#calculateAOA">calculateAOA</a></li><li><a href="global.html#calculateAOAwithGivenModel">calculateAOAwithGivenModel</a></li><li><a href="global.html#calculateNewModelAndAOA">calculateNewModelAndAOA</a></li><li><a href="global.html#checkFileNotFound">checkFileNotFound</a></li><li><a href="global.html#CLOUD_COVERAGE_IN_PERCENTAGE">CLOUD_COVERAGE_IN_PERCENTAGE</a></li><li><a href="global.html#cors">cors</a></li><li><a href="global.html#deleteFiles">deleteFiles</a></li><li><a href="global.html#DESIRED_BANDS">DESIRED_BANDS</a></li><li><a href="global.html#express">express</a></li><li><a href="global.html#fs">fs</a></li><li><a href="global.html#getAoiTif">getAoiTif</a></li><li><a href="global.html#getData">getData</a></li><li><a href="global.html#getTrainingDataTif">getTrainingDataTif</a></li><li><a href="global.html#https">https</a></li><li><a href="global.html#LIMIT">LIMIT</a></li><li><a href="global.html#multer">multer</a></li><li><a href="global.html#path">path</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#processInputData">processInputData</a></li><li><a href="global.html#R">R</a></li><li><a href="global.html#RESOLUTION">RESOLUTION</a></li><li><a href="global.html#rFilePath">rFilePath</a></li><li><a href="global.html#shiftDatesOneDay">shiftDatesOneDay</a></li><li><a href="global.html#storage">storage</a></li><li><a href="global.html#swaggerUi">swaggerUi</a></li><li><a href="global.html#validateTrainingData">validateTrainingData</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Jan 20 2022 12:17:16 GMT+0100 (Mitteleuropäische Normalzeit)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jan 24 2022 14:01:50 GMT+0100 (Mitteleuropäische Normalzeit)
 </footer>
 
 <script> prettyPrint(); </script>

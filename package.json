@@ -6,7 +6,7 @@
     "scripts": {
     "start": "node app.js",
     "test": "mocha",
-    "doc": "jsdoc -d docs  useR_AOI_TD.js"
+    "doc": "jsdoc -c jsDoc_config.json -d doc/js"
   },
   "repository": {
     "type": "git",
