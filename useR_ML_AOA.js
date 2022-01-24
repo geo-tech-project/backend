@@ -65,6 +65,8 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
         output.classifyAndAOA = ["2"]
     }
 
+    console.log("output: ", output)
+
     return output;
 }
 
