@@ -741,6 +741,39 @@ const apiDocumentation = {
           }
         }
       }
+    },
+    "/markdown": {
+      get: {
+        tags: ["markdown"],
+        summary: "Get the markdown file from the main branch of the frontend repository",
+        description: "Returns the markdown file",
+        operationId: "getMarkdown",
+        responses: {
+          "200": {
+            description: "The markdown file",
+            content: {
+              "text/markdown": {
+                schema: {
+                  type: "string",
+                  required: true,
+                }
+              }
+            } 
+          },
+          "304": {
+            description: "The markdown file",
+            content: {
+              "text/markdown": {
+                schema: {
+                  type: "string",
+                  required: true,
+                }
+              }
+            }
+          },
+          "404": fileNotFoundError, 
+        } 
+      }
     }
   },
   components: {
