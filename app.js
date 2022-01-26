@@ -111,6 +111,17 @@ app.use(express.urlencoded({
 app.use(cors());
 
 app.post('/start', async (req, res, next) => {
+    if (req.body.areyouatest) {
+        //copy files to uplaods
+        fs.copyFile(__dirname + '/R/test_data/model.RDS', __dirname + '/public/uploads/model.RDS', (err) => {
+            if (err) throw err;
+            console.log('model for testrun copied to destination');
+        });
+        fs.copyFile(__dirname + '/R/test_data/trainingsdaten_muenster_32632.gpkg', __dirname + '/public/uploads/trainingsdaten_muenster_32632.gpkg', (err) => {
+            if (err) throw err;
+            console.log('training data for testrun copied to destination');
+        });
+    }
 
     /**
      * Formatting all needed incomingData in the way the getData function needs them.
@@ -229,9 +240,9 @@ app.get("/async", (req, res, next) => {
     // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
     //let trees = 75;
     callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {
-            algorithm: 'rf',
-            data: '[3]'
-        }) //Hyperparameter für die Algorithmen
+        algorithm: 'rf',
+        data: '[3]'
+    }) //Hyperparameter für die Algorithmen
         .then((result) => {
             console.log(result)
             callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])

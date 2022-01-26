@@ -8,6 +8,7 @@ const { ok } = require("assert");
 
 //Input data
 var data = {
+    areyouatest: true,
     whereareyoufrom: 'map',
     topleftlat: 51.94630759340601,
     topleftlat: 51.94630759340601,
@@ -29,34 +30,6 @@ var data = {
     mtry: 2
 }
 
-//Testing getData to generate Satellite images
-describe('#getData()', function () {
-    context('with input argument', function () {
-        it('should return object, aoi status ok, trainingData status ok', async function () {
-            var result = await getData(data);
-            expect(result)
-                .to.be.a('Object')
-            expect({ result: { status: 'ok' } }).to.deep.equal({ result: { status: 'ok' } })
-            expect({ result: { aoi: { status: 'ok' } } }).to.deep.equal({ result: { aoi: { status: 'ok' } } })
-            expect({ result: { trainingData: { status: 'ok' } } }).to.deep.equal({ result: { trainingData: { status: 'ok' } } })
-        }).timeout(300000)
-    })
-})
-
-
-
-//Testing calculateAOA processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands
-describe('#calculateAOA()', function () {
-    context('with input argument', function () {
-        it("should return object, training status ok, classifyAndAOA status ok", async function () {
-            var result = await calculateAOA(data);
-            expect(result)
-                .to.be.a('Object')
-            expect({ result: { training: { status: 'ok' } } }).to.deep.equal({ result: { training: { status: 'ok' } } })
-            expect({ result: { classifyAndAOA: { status: 'ok' } } }).to.deep.equal({ result: { classifyAndAOA: { status: 'ok' } } })
-        }).timeout(300000)
-    })
-})
 
 
 //Test of demo route
@@ -65,6 +38,7 @@ describe("POST /start", function () {
         await request(app)
             .post("/start")
             .send({
+                areyouatest: true,
                 whereareyoufrom: 'demo',
                 topleftlat: 51.946286720328104,
                 topleftlng: 7.5971644627228905,
@@ -95,6 +69,7 @@ describe("POST /start", function () {
         await request(app)
             .post("/start")
             .send({
+                areyouatest: true,
                 whereareyoufrom: 'map',
                 topleftlat: 51.94630759340601,
                 topleftlat: 51.94630759340601,
@@ -117,4 +92,33 @@ describe("POST /start", function () {
             })
             .expect(200)
     }).timeout(300000)
-}) 
+})
+
+//Testing getData to generate Satellite images
+describe('#getData()', function () {
+    context('with input argument', function () {
+        it('should return object, aoi status ok, trainingData status ok', async function () {
+            var result = await getData(data);
+            expect(result)
+                .to.be.a('Object')
+            expect({ result: { status: 'ok' } }).to.deep.equal({ result: { status: 'ok' } })
+            expect({ result: { aoi: { status: 'ok' } } }).to.deep.equal({ result: { aoi: { status: 'ok' } } })
+            expect({ result: { trainingData: { status: 'ok' } } }).to.deep.equal({ result: { trainingData: { status: 'ok' } } })
+        }).timeout(300000)
+    })
+})
+
+
+
+//Testing calculateAOA processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands
+describe('#calculateAOA()', function () {
+    context('with input argument', function () {
+        it("should return object, training status ok, classifyAndAOA status ok", async function () {
+            var result = await calculateAOA(data);
+            expect(result)
+                .to.be.a('Object')
+            expect({ result: { training: { status: 'ok' } } }).to.deep.equal({ result: { training: { status: 'ok' } } })
+            expect({ result: { classifyAndAOA: { status: 'ok' } } }).to.deep.equal({ result: { classifyAndAOA: { status: 'ok' } } })
+        }).timeout(300000)
+    })
+})
