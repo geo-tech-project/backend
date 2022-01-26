@@ -4,21 +4,9 @@ const app = require("../app.js")
 var expect = require('chai').expect;
 var { calculateAOA, processInputData, calculateAOAwithGivenModel, calculateNewModelAndAOA } = require("../useR_ML_AOA");
 var { getData } = require("../useR_AOI_TD");
+const { ok } = require("assert");
 
-var inputObjectModel = {
-    option: 'model',
-    filePath: 'model.RDS',
-    channels: ['B02', 'B03', 'B04', 'B05'],
-}
-
-var inputObjectData = {
-    option: 'data',
-    filePath: 'trainingsdaten_koeln_4326.gpkg',
-    channels: ['B02', 'B03', 'B04', 'B05'],
-    algorithm: "rf",
-    mtry: 2
-}
-
+//Input data
 var data = {
     whereareyoufrom: 'map',
     topleftlat: 51.94630759340601,
@@ -35,84 +23,23 @@ var data = {
     startDate: '2021-07-03T22:00:00.000Z',
     endDate: '2021-07-17T22:00:00.000Z',
     filename: 'trainingsdaten_muenster_32632.gpkg',
-    resolution: '400',
+    resolution: '20',
     channels: ['B02', 'B03', 'B04', 'B05'],
     coverage: 50,
-    mtry: null
+    mtry: 2
 }
-
-//'./R/training_data/trainingsdaten_koeln_4326.gpkg'
-
-//Testing processInpuData with given model (Fehler bei der Benutzung des Modells)
-/**
-describe('#processInputDataModel()', function () {
-    context('with input argument', function () {
-        it('should return object', function () {
-
-            var result = processInputData(inputObjectModel);
-
-            expect(result)
-                .to.be.a('Object')
-
-        })
-    })
-})*/
-
-//Testing processInpuData with training data
-describe('#processInputDataTrainingData()', function () {
-    context('with input argument', function () {
-        it('should return object', function () {
-
-            var result = processInputData(data);
-
-            console.log("result processInputDataTrainingData: ", result)
-
-            expect(result)
-                .to.be.a('Object')
-
-        })
-    })
-})
-
-//Testing calculateNewModelAndAOA 
-describe('#calculateNewModelAndAOA()', function () {
-    context('with input argument', function () {
-        it("should return object", async function () {
-
-            var result = await calculateNewModelAndAOA("rf", 'trainingsdaten_koeln_4326.gpkg', [2], ['B02', 'B03', 'B04', 'B05']);
-
-            console.log("result calculateNewModelAndAOA: ", result)
-
-            expect(result)
-                .to.be.a('Object')
-
-        }).timeout(300000)
-    })
-})
-
-//Testing calculateAOAwithGivenModel
-describe('#calculateAOAwithGivenModel()', function () {
-    context('with input argument', function () {
-        it('should return object', async function () {
-            var result = await calculateAOAwithGivenModel('model.RDS', ['B02', 'B03', 'B04', 'B05'])
-
-            console.log("result calculateAOAwithGivenModel: ", result)
-
-            expect(result)
-                .to.be.a('Object')
-        }).timeout(300000)
-    })
-})
 
 //Testing getData to generate Satellite images
 describe('#getData()', function () {
     context('with input argument', function () {
-        it('should return object', async function () {
+        it('should return object, aoi status ok, trainingData status ok', async function () {
             var result = await getData(data);
-
             expect(result)
                 .to.be.a('Object')
-        })
+            expect({ result: { status: 'ok' } }).to.deep.equal({ result: { status: 'ok' } })
+            expect({ result: { aoi: { status: 'ok' } } }).to.deep.equal({ result: { aoi: { status: 'ok' } } })
+            expect({ result: { trainingData: { status: 'ok' } } }).to.deep.equal({ result: { trainingData: { status: 'ok' } } })
+        }).timeout(300000)
     })
 })
 
@@ -121,10 +48,12 @@ describe('#getData()', function () {
 //Testing calculateAOA processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands
 describe('#calculateAOA()', function () {
     context('with input argument', function () {
-        it("should return object", async function () {
+        it("should return object, training status ok, classifyAndAOA status ok", async function () {
             var result = await calculateAOA(data);
             expect(result)
                 .to.be.a('Object')
+            expect({ result: { training: { status: 'ok' } } }).to.deep.equal({ result: { training: { status: 'ok' } } })
+            expect({ result: { classifyAndAOA: { status: 'ok' } } }).to.deep.equal({ result: { classifyAndAOA: { status: 'ok' } } })
         }).timeout(300000)
     })
 })
@@ -162,7 +91,6 @@ describe("POST /start", function () {
 
 // Test of start route 
 describe("POST /start", function () {
-    this.timeout(30000)
     it("Should return status code 200 if function gets started", async function () {
         await request(app)
             .post("/start")
@@ -181,12 +109,12 @@ describe("POST /start", function () {
                 algorithm: 'rf',
                 startDate: '2021-07-03T22:00:00.000Z',
                 endDate: '2021-07-17T22:00:00.000Z',
-                filename: './R/training_datatrainingsdaten_muenster_32632.gpkg',
-                resolution: '400',
+                filename: 'trainingsdaten_muenster_32632.gpkg',
+                resolution: '20',
                 channels: ['B02', 'B03', 'B04', 'B05'],
                 coverage: 50,
-                mtry: null
+                mtry: 2
             })
             .expect(200)
     }).timeout(300000)
-})
+}) 

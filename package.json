@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
-    "scripts": {
+  "scripts": {
     "start": "node app.js",
     "test": "mocha",
     "doc": "jsdoc -c jsDoc_config.json -d doc/js"
@@ -21,6 +21,7 @@
   "dependencies": {
     "axios": "^0.24.0",
     "body-parser": "^1.19.0",
+    "chai": "^4.3.4",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
