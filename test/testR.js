@@ -11,7 +11,7 @@ const testScript = async (scriptName, functionName) => {
                 return false;
             }
         });
-        console.log(`All ${data.length} R Test(s) passed for script: ${scriptName}`);	
+        console.log(`All ${data.length -1} R Test(s) passed for script: ${scriptName}`);	
         return true;
     } catch (e) {
         console.log("R Test failed: " + scriptName);	
@@ -22,6 +22,10 @@ const testScript = async (scriptName, functionName) => {
 scriptsToTest = [
     {
         scriptName: "./testGetSatelliteImages.R",
+        functionName: "test"
+    },
+    {
+        scriptName: "./testCheck_TrainingData.R",
         functionName: "test"
     }
 ]
