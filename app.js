@@ -172,8 +172,13 @@ app.post('/start', async (req, res, next) => {
             console.log("/start 400", response);
         } else {
             response.aoa = await calculateAOA(req.body);
-            console.log("/start 200", response);
-            res.send(response);
+            if (response.aoa.status === "error") {
+                res.status(403).send(response);
+                console.log("/start 400", response)
+            } else {
+                console.log("/start 200", response);
+                res.send(response);
+            }
         }
     }
 });
