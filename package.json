@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "test": "mocha",
+    "testR": "node test/testR.js",
     "doc": "jsdoc -c jsDoc_config.json -d doc/js"
   },
   "repository": {
