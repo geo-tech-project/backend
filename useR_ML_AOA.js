@@ -184,7 +184,7 @@ async function calculateAOA(data) {
             output.classifyAndAOA = {
                 status: 'error',
                 error: 'Prediction and AOA: Unexpected error occured',
-                errorDetails: output.classify[0]
+                errorDetails: output.classifyAndAOA[0]
             }
             console.log("Prediction and AOA: Unexpected error occured")
         }
@@ -203,7 +203,7 @@ async function calculateAOA(data) {
             output.training = {
                 status: 'not executed',
                 error: 'Model training: Not executed due to calculation with uploaded model',
-                errorDetails: output.classifyAndAOA[0]
+                errorDetails: output.training[0]
             }
             output.classifyAndAOA = {
                 status: 'ok',
@@ -215,7 +215,7 @@ async function calculateAOA(data) {
             output.training = {
                 status: 'not executed',
                 error: 'Model training: Not executed due to calculation with uploaded model',
-                errorDetails: output.classifyAndAOA[0]
+                errorDetails: output.training[0]
             }
             output.classifyAndAOA = {
                 status: 'error',
@@ -227,7 +227,7 @@ async function calculateAOA(data) {
             output.training = {
                 status: 'not executed',
                 error: 'Model training: Not executed due to calculation with uploaded model',
-                errorDetails: output.classifyAndAOA[0]
+                errorDetails: output.training[0]
             }
             output.classifyAndAOA = {
                 status: 'error',
