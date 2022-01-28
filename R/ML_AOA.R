@@ -170,8 +170,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(rgeos)
   library(geojson)
   library(rjson)
-
-  readRDS(desiredBands)
+  
 
   files <- list.files(path="./R/prediction_and_aoa/")
   for (i in 1:length(files)) {
