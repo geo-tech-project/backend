@@ -29,11 +29,11 @@
 # -Trained model as .rds file
 
 # setwd("~/Documents/Studium/5. Semester/Geosoftware_II/geo-tech-project/backend")
-# algorithm = 'rf'
+# algorithm = 'svmRadial'
 # trainingDataPath = './public/uploads/trainingsdaten_muenster_32632.gpkg'
 # hyperparameter = c(2)
 # hyperparameter = c(1, 1)
-# desiredBands = c("B02", "B03", "B04", "SCL")
+# desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
 
 
 training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) {
@@ -46,11 +46,13 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   library(sf)
   library(Orcs)
   library(jsonlite)
+  library(kernlab)
 
   
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/trainingData.tif")
   names(stack) <-  desiredBands
+  stack <- dropLayer(stack, length(names(stack)))
   # stack <- scale(stack, center = c(0,0,0,0,0), scale = c(10, 10, 10, 10, 10))
   
   # load training data
@@ -68,7 +70,6 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   
   # Prädiktoren und Response festlegen
   predictors <- names(stack)
-  predictors <- predictors[! predictors %in% c('SCL')]
   response <- "Label"
   
   
@@ -154,7 +155,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 # -Recommended training locations
 
 # modelPath = "R/model/model.RDS"
-# desiredBands = c("B02", "B03", "B04", "B08", "SCL")
+# desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
 
 classifyAndAOA <- function(modelPath, desiredBands) {
   
@@ -170,6 +171,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(rgeos)
   library(geojson)
   library(rjson)
+  library(kernlab)
   
 
   files <- list.files(path="./R/prediction_and_aoa/")
@@ -180,19 +182,33 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/aoi.tif")
   names(stack) <- desiredBands
+  stack <- dropLayer(stack, length(names(stack)))
   # stack <- scale(stack, center = c(0,0,0,0,0), scale = c(10, 10, 10, 10, 10))
 
   # load raster stack from data directory
   model <- readRDS(modelPath)
   
   # check if all predictors are in the data the predictions are made on
-  predictors <- model$finalModel$xNames
-  bands <- names(stack)
-  for (i in 1:length(predictors)) {
-    if (!(predictors[i] %in% bands)) {
-      return(1)
+  if (model$method == 'rf') {
+    predictors <- model$finalModel$xNames
+    bands <- names(stack)
+    for (i in 1:length(predictors)) {
+      if (!(predictors[i] %in% bands)) {
+        return(1)
+      }
     }
+  } else if (model$method == 'svmRadial') {
+    predictors <- names(model$finalModel@scaling$x.scale$`scaled:scale`)
+    bands <- names(stack)
+    for (i in 1:length(predictors)) {
+      if (!(predictors[i] %in% bands)) {
+        return(1)
+      }
+    }
+  } else {
+    return(4)
   }
+  
   
   # prediction
   prediction <- predict(stack,model)
@@ -201,7 +217,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   writeRaster(prediction, "R/prediction_and_aoa/prediction.tif", overwrite = TRUE)
   
   # parallelization
-  cl <- makeCluster(4)
+  cl <- makeCluster(6)
   registerDoParallel(cl)
 
   # calculate AOA

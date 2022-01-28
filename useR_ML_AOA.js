@@ -235,6 +235,18 @@ async function calculateAOA(data) {
                 errorDetails: output.classifyAndAOA[0]
             }
             console.log("Prediction and AOA: Unexpected error occured")
+        } else if (output.training[0] === '3' && output.classifyAndAOA[0] === '4') {
+            output.training = {
+                status: 'not executed',
+                error: 'Model training: Not executed due to calculation with uploaded model',
+                errorDetails: output.training[0]
+            }
+            output.classifyAndAOA = {
+                status: 'error',
+                error: 'Prediction and AOA: Model type is not supported. Use model of type "rf" or "svmRadial',
+                errorDetails: output.classifyAndAOA[0]
+            }
+            console.log("Prediction and AOA: Unexpected error occured")
         }
 
         //Setting output.status to 'ok' if the script(s) run successfully, otherwise 'error'.
