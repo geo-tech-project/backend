@@ -46,6 +46,8 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   library(sf)
   library(Orcs)
   library(jsonlite)
+
+  readRDS(desiredBands)
   
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/trainingData.tif")
@@ -170,7 +172,6 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   library(geojson)
   library(rjson)
 
-  readRDS(desiredBands)
 
   files <- list.files(path="./R/prediction_and_aoa/")
   for (i in 1:length(files)) {
