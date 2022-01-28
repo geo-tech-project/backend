@@ -39,7 +39,6 @@
 
 training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) {
 
-
   # load packages
   library(raster)
   library(caret)
@@ -48,6 +47,8 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   library(sf)
   library(Orcs)
   library(jsonlite)
+  
+  readRDS(algorithm)
   
   # load raster stack from data directory
   stack <- stack("R/processed_sentinel_images/trainingData.tif")
