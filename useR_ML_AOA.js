@@ -155,11 +155,11 @@ async function calculateAOA(data) {
         if (output.training[0] === "0" && output.classifyAndAOA[0] === '0') {
             output.training = {
                 status: 'ok',
-                data: 'Model training: successfull'
+                data: 'Model training: Successfull'
             }
             output.classifyAndAOA = {
                 status: 'ok',
-                data: 'Prediction and AOA: successfull'
+                data: 'Prediction and AOA: Successfull'
             }
             console.log("model.RDS was successfully created")
             console.log("prediction.tif was successfully created")
@@ -179,7 +179,7 @@ async function calculateAOA(data) {
         } else if (output.training[0] === '0' && output.classifyAndAOA[0] === '2') {
             output.training = {
                 status: 'ok',
-                data: 'Model training: successfull'
+                data: 'Model training: Successfull'
             }
             output.classifyAndAOA = {
                 status: 'error',
@@ -207,7 +207,7 @@ async function calculateAOA(data) {
             }
             output.classifyAndAOA = {
                 status: 'ok',
-                data: 'Prediction and AOA: successfull'
+                data: 'Prediction and AOA: Successfull'
             }
             console.log("prediction.tif was successfully created")
             console.log("aoa.tif was successfully created")
