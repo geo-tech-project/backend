@@ -1,0 +1,470 @@
+---
+title: "Documentation GetSatelliteImages.R"
+author: "Jakob Danel"
+date: "25 1 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Remove all variables from current environment
+First of all remove all the variables from the current environment.
+```{r remove_all_variables}
+rm(list=ls())
+```
+
+## Functions
+
+### Function to get the UTM zone from longitude.
+A function to get a UTM zone to a given longitude \
+**parameters:** \
+**longitude** (Float) of a coordinate in WGS84 \
+**returns:** (Number) The Number of the UTM zone from the given longitude
+```{r getUTMZone}
+getUTMZone <- function (longitude){
+  return( (floor((longitude + 180)/6) %% 60) + 1)
+}
+```
+### Function that gets the EPSG code from a UTM zone
+
+All EPSG codes to be returned are in UTM coordinates of WGS84 \
+**parameters:** \
+**utmZone** (Integer) The zone number \
+**returns:** (String) The EPSG Code of the given utmZone
+```{r epsgCodeFromUTMzone}
+epsgCodeFromUTMzone <- function(utmZone){
+  if(utmZone < 10){
+    x <- toString(utmZone)
+    string = paste("0",x,sep = "")
+    
+  }else{
+    string = toString(utmZone)
+  }
+  return(paste("EPSG:326",string, sep=""))
+}
+```
+### Function that returns the EPSG code of an CRS depending on the longitude.
+All EPSG codes to be returned are in UTM coordinates of WGS84.
+**parameters:** \
+**longitude** (Float) of a coordinate in WGS84 \
+**returns:** (String) The EPSG code of the given longitude
+```{r getEPSG}
+getEPSG <- function(longitude){
+  zone <- getUTMZone(longitude)
+  epsg <- epsgCodeFromUTMzone(zone)
+  return(epsg)
+}
+```
+### Function to transform a bbox of any CRS to a bbox with a WGS84 CRS.
+**parameters:** bbox of the area of interest \
+**returns:** (bbox) The bbox in WGS84 coordinate system
+```{r bboxToWGS84}
+bboxToWGS84 <- function(bbox){
+  library(sf)
+  st_as_sfc(bbox) %>%
+    st_transform("EPSG:4326") %>%
+    st_bbox() -> bbox_WGS84
+  return(bbox_WGS84)
+}
+```
+
+### Function that creates a bbox from two coordinates (bottom left and top right coordinates).
+**parameters:** \
+**bottomLeftX** (Float) \
+**bottomLeftY** (Float)\
+**topRightX** (Float) \
+**topRightY** (Float) \
+**returns:** (bbox) Creates an bbox object from the given bounding box coordinates
+```{r getBBoxFromAOI}
+getBBoxFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY) {
+  library(rgeos)
+  bbox <- rgeos::bbox2SP(n = topRightY, s = bottomLeftY, w = bottomLeftX, e = topRightX,
+                         proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+  return (bbox)
+}
+```
+### Function that transforms a bbox with a WGS84 CRS to a bbox with the same CRS used in the cube view function.
+**parameters:** \
+**bboxWGS84** bbox of the area of interest in WGS84 \
+**returns:** bbox in the reference system with the correct UTM zone
+```{r transformBBOXcrsToUTM}
+transformBBOXcrsToUTM <- function(bboxWGS84){
+  library(rgdal)
+  if (!is.null(bboxWGS84@bbox[1,1])){
+    crs = getEPSG(bboxWGS84@bbox[1,1])
+  }
+  else{
+    crs = getEPSG(xmin(extent(bboxWGS84)))
+  }
+  bbox <- spTransform(bboxWGS84, CRS(crs))
+  return (bbox)
+}
+```
+
+### Function that transforms the training data to the same CRS used in the cube view function.
+**parameters:** \
+**trainingData** \
+**returns:** The trainingData transformed into the UTM zone of the cube view
+```{r transformTrainingDataToCRSFromCube}
+transformTrainingDataToCRSFromCube <- function(trainingData) {
+  bbox = st_bbox(trainingData)
+  bboxWGS84 = bboxToWGS84(bbox)
+  lon = bboxWGS84["xmin"]
+  crs = getEPSG(lon)
+  trainingDataInCRSFromCube <- st_transform(trainingData, crs)
+  return (trainingDataInCRSFromCube)
+}
+```
+### Function that returns the number of days that are within a date period.
+**parameters:** \ 
+**datetime** (String): "YYYY-MM-DD/YYYY-MM-DD" \
+**returns:** (Number) The number of days in this period
+```{r numberOfDaysFromPeriod}
+numberOfDaysFromPeriod <- function(datetime) {
+  date1 <- substr(datetime,12,21)
+  date1 <- gsub(pattern = "-", replacement = "/",date1, fixed = TRUE)
+  date2 <- substr(datetime,0,10)
+  date2 <- gsub(pattern = "-", replacement = "/",date2, fixed = TRUE)
+  survey <- data.frame(date=date1, tx_start=date2)
+  survey$date_diff <- as.Date(as.character(survey$date), format="%Y/%m/%d")-
+    as.Date(as.character(survey$tx_start), format="%Y/%m/%d")
+  survey$date_diff<-as.numeric(survey$date_diff)
+  return(survey$date_diff)
+}
+```
+### Function that returns useable satellite images from the stac catalogue.
+**parameters:** \
+**bbox** of area of interest in any CRS \
+**datetime** (String): (example: "2021-06-01/2021-06-30") \
+**limit** (Integer) -> maximum count of found images from stac to be used
+**returns:** The stac image collection of the parameter matching images
+```{r stacRequest}
+stacRequest <- function(bbox, datetime, limit) {
+  library(rstac)
+  s = stac("https://earth-search.aws.element84.com/v0")
+  bbox = bboxToWGS84(bbox)
+  items = s %>%
+    stac_search(collections = "sentinel-s2-l2a-cogs",
+                bbox = c(bbox["xmin"],bbox["ymin"],
+                         bbox["xmax"],bbox["ymax"]), 
+                datetime = datetime,
+                limit = limit) %>%
+    post_request()
+  return(items)
+}
+```
+
+### Function that creates an image collection. \
+**parameters:** - desiredBands (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) \
+**cloudCoverageInPercentage** (Float) \
+**items** found by the stac request \
+**returns** 3 if after the cloudFilter no Images are left, else the imageCollection
+```{r createImageCollection}
+createImageCollection <- function(desiredBands, cloudCoverageInPercentage, items){
+  library(gdalcubes)
+  s2_collection <- tryCatch(
+    {
+      stac_image_collection(items$features, asset_names = desiredBands, property_filter = function(x) {x[["eo:cloud_cover"]] <= cloudCoverageInPercentage})
+    },
+    error=function(cond) {
+      return(3)
+    },
+    finally={
+    }
+    )
+  return(s2_collection)
+}
+```
+### Function that creates the view of a cube.
+parameters: \
+**bbox** of area of interest in UTM coordinates \
+**resolution** in meters (Integer): (options: 10/20/60/100/200/400) \
+**datetime** (String): (example: "2021-06-01/2021-06-30") \
+**returns** The cube view of the given data
+```{r createCubeView}
+createCubeView <- function(bboxUTM, resolution, datetime){
+  bboxWGS84 = bboxToWGS84(bboxUTM)
+  bboxUTM = st_bbox(bboxUTM) # goal: access the bbox in the cube_view function everytime in the same way like (bboxUTM["xmin"])
+  lon = bboxWGS84["xmin"]
+  crs = getEPSG(lon)
+  days = numberOfDaysFromPeriod(datetime) +1
+  daysString = paste("P",days,"D",sep = "")
+  v.bbox.overview = cube_view(srs= crs,  dx=resolution, dy=resolution, dt= daysString, 
+                              aggregation="median", resampling = "average",
+                              extent=list(t0 = substr(datetime,0,10), t1 = substr(datetime,12,21),
+                              left=bboxUTM["xmin"] - 1000, right=bboxUTM["xmax"] + 1000,
+                              top=bboxUTM["ymax"] + 1000, bottom=bboxUTM["ymin"] - 1000))
+  return (v.bbox.overview)
+}
+```
+### Function that creates the needed satellite image from the training data as a tif file.
+**parameters:** \
+**image collection** (from createImageCollection function) \
+**cube view** (from createCubeView function) \
+**training data** \
+**returns** (void)
+```{r createTifFileFromTrainingData}
+createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingData){
+  # Set mask for further cloud filtering
+  S2.mask = image_mask("SCL", values = c(3,8,9))
+  # Create raster cube and filter images by the geometry of the training data
+  if (!is.null(trainingData$geom)){
+    sentinel <- raster_cube(imageCollection, cubeView, S2.mask) %>%
+      filter_geom(trainingData$geom)
+  }
+  else if(!is.null(trainingData$geometry)) {
+    sentinel <- raster_cube(imageCollection, cubeView, S2.mask) %>%
+      filter_geom(trainingData$geometry)
+  }
+  #print(sentinel)
+  write_tif(
+    sentinel,
+    dir = "./R/processed_sentinel_images",
+    prefix = 'trainingData_',
+    overviews = FALSE,
+    COG = TRUE,
+    rsmpl_overview = "nearest",
+    creation_options = NULL,
+    write_json_descr = FALSE,
+    pack = NULL
+  )
+  files <- list.files(path="./R/processed_sentinel_images/")
+  file.rename(paste("./R/processed_sentinel_images/",files[2],sep=""),"./R/processed_sentinel_images/trainingData.tif")
+}
+```
+
+### Function that combines all prior functions to one function. It generates a satellite image as a tif file.
+**parameters:** \
+**trainingDataPath:** path to where the training data is stored \
+**datetime** (String): (example: "2021-06-01/2021-06-30") \
+**resolution** in meters (Integer): (options: 10/20/60/100/200/400) \
+**limit** (Integer) -> maximum count of found images from stac to be used \
+**desiredBands** (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) \
+**cloudCoverageInPercentage** (Float) \
+**returns:** See return codes
+```{r generateSatelliteImageFromTrainingData}
+generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage) {
+  library(sf)
+  # Read the path to upload the training data
+  trainingData <- read_sf(trainingDataPath)
+  # Transform training data to the same CRS we use to create the cube view, so that every geometry alligns to each other
+  trainingData <- transformTrainingDataToCRSFromCube(trainingData)
+  # Set BBOX to bbox of the shape and crs (UTM) from the training data
+  bbox = st_bbox(trainingData)
+  # Querying images with rstac
+  items = stacRequest(bbox, datetime, limit)
+  if (length(items$features) == 0) {
+    return(1)
+  }
+  # print(items)
+  # Creating an image collection
+  imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
+  if (is.numeric(imageCollection)) {
+    return(3)
+  }
+  # print(imageCollection)
+  # Creating the cube view
+  cubeView = createCubeView(bbox, resolution, datetime)
+  # print(cubeView)
+  # Parallel computing
+  gdalcubes_options(threads = 16)
+  # Create tif file
+  createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
+  return(0)
+}
+``` 
+### Function that creates the needed satellite image from the training data as a tif file.
+**parameters:** \ 
+**image collection** (from createImageCollection function) \
+**cube view** (from createCubeView function) \
+**returns:** (void)
+```{r createTifFileFromAOI}
+createTifFileFromAOI <- function(imageCollection,cubeView){
+  files <- list.files(path="./R/processed_sentinel_images/")
+  files
+  for (i in 1:length(files)) {
+    file.remove(paste("./R/processed_sentinel_images/",files[i],sep=""))
+  }
+  # Set mask for further cloud filtering
+  S2.mask = image_mask("SCL", values = c(3,8,9))
+  # Create raster cube
+  sentinel <- raster_cube(imageCollection, cubeView, S2.mask) 
+  #print(sentinel)
+  write_tif(
+    sentinel,
+    dir = "./R/processed_sentinel_images",
+    prefix = "aoi_",
+    overviews = FALSE,
+    COG = TRUE,
+    rsmpl_overview = "nearest", 
+    creation_options = NULL,
+    write_json_descr = FALSE,
+    pack = NULL
+  )
+  files <- list.files(path="./R/processed_sentinel_images/")
+  file.rename(paste("./R/processed_sentinel_images/",files[1],sep=""),"./R/processed_sentinel_images/aoi.tif")
+
+}
+```
+### Function that combines all prior functions to one function. It generates a satellite image as a tif file.
+**parameters:** \
+**bottomLeftX** (Float) \
+**bottomLeftY** (Float) \
+**topRightX** (Float) \
+**topRightY** (Float) \
+**datetime** (String): (example: "2021-06-01/2021-06-30") \
+**resolution** in meters (Integer): (options: 10/20/60/100/200/400) \
+**limit** (Integer) -> maximum count of found images from stac to be used \
+**desiredBands** (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) \
+**cloudCoverageInPercentage** (Float) \
+**returns:** see return codes
+```{r generateSatelliteImageFromAOI}
+generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY,datetime,limit,desiredBands,resolution,cloudCoverageInPercentage) {
+  # Create bbox of coordinates
+  bboxWGS84 <- getBBoxFromAOI(bottomLeftX,bottomLeftY,topRightX,topRightY)
+  # Transform bbox CRS to the same CRS we use to create the cube view, so that every geometry alligns to each other
+  bboxUTM <- transformBBOXcrsToUTM(bboxWGS84)
+  # Querying images with rstac
+  items = stacRequest(bboxUTM, datetime, limit)
+  if (length(items$features) == 0) {
+    return(1)
+  }
+  # print(items)
+  # Creating an image collection
+  imageCollection =  createImageCollection(desiredBands, cloudCoverageInPercentage, items)
+  if (is.numeric(imageCollection)) {
+    return(3)
+  }
+  # print(imageCollection)
+  # Creating the cube view
+  cubeView = createCubeView(bboxUTM, resolution, datetime)
+  # print(cubeView)
+  # Parallel computing
+  gdalcubes_options(threads = 16)
+  # Create tif file
+  createTifFileFromAOI(imageCollection, cubeView)
+  return(0)
+}
+```
+### Function that loads and plots a tif file depending on a file path.
+**parameters:** \
+**filePath:** path to the stored tif \
+**return:** (void)
+```{r plotTifFile}
+plotTifFile <- function(filePath){
+  library(raster)
+  sentinel <- stack(filePath)
+  sentinel
+  plotRGB(sentinel, r=3, g=2, b=1, stretch = "lin")
+}
+```
+## Return Codes
+The main functions returning codes, which indicating if the creating of a TIF file was successful or not. If it was not successful the code indicates why the program have not run successful. \
+**0** - TIF file was successful created \
+**1** - For the given date period and area where no items found \
+**2** - Unexpected Error \
+**3** - After filtering the results from stac_request with the cloud coverage no images where left \
+
+## Demo
+Saving some example variables for testing the functions \
+You can set your own variables here \
+```{r setVariables }
+trainingDataPath = "./R/training_data/trainingsdaten_koeln_25832.gpkg" #trainingdata should be located in the R folder of the backend
+datetime = "2021-01-01/2021-12-31"
+limit = 500
+desiredBands = c("B02","B03","B04","SCL")
+resolution = 100
+cloudCoverageInPercentage = 100
+```
+## Demo for AOI
+
+Create bbox of coordinates of the AOI
+```{r bboxA0I}
+bboxWGS84 <- getBBoxFromAOI(7,50,7.1,50.1)
+bboxWGS84
+``` 
+
+Transform bbox CRS to the same CRS we use to create the cube view, so that every geometry alligns to each other
+```{r bboxAOIUTM}
+bboxUTM <- transformBBOXcrsToUTM(bboxWGS84)
+bboxUTM
+```
+
+Querying images with rstac
+```{r stacAOI}
+items = stacRequest(bboxUTM, datetime, limit)
+items
+``` 
+Creating an image collection
+```{r imageCollectionAOI}
+imageCollection =  createImageCollection(desiredBands, resolution, items)
+imageCollection
+``` 
+Creating the cube view
+```{r cubeViewAOI}
+cubeView = createCubeView(bboxUTM, resolution, datetime)
+cubeView
+``` 
+
+Create tif file
+```{r createTifeFileAOI}
+createTifFileFromAOI(imageCollection, cubeView)
+```
+Plotting
+```{r plotting2}
+plotTifFile("./R/processed_sentinel_images/aoi.tif")
+```
+
+## Demo for training data
+
+Read the path to get the training data
+```{r trainingData}
+library(sf)
+trainingData = read_sf(trainingDataPath)
+trainingData
+```
+Transform training data to the same CRS we use to create the cube view, so that every geometry alligns to each other
+```{r trainingData2}
+trainingData <- transformTrainingDataToCRSFromCube(trainingData)
+trainingData
+```
+Set BBOX to bbox of the shape from the training data
+```{r bbox}
+bbox = st_bbox(trainingData)
+bbox
+``` 
+Querying images with rstac
+```{r stacItems}
+items = stacRequest(bbox, datetime, limit)
+items
+``` 
+Creating an image collection
+```{r imageCollection}
+imageCollection = createImageCollection(desiredBands, cloudCoverageInPercentage, items)
+imageCollection
+``` 
+Creating the cube view
+```{r cubeView}
+cubeView = createCubeView(bbox, resolution, datetime)
+cubeView
+``` 
+Parallel computing
+```{r threads}
+gdalcubes_options(threads = 16)
+```
+Create tif file
+```{r createTIF}
+createTifFileFromTrainingData(imageCollection, cubeView, trainingData)
+```
+Plotting the file
+```{r plotTrainingData}
+plotTifFile("./R/processed_sentinel_images/trainingData.tif")
+```
+
+
+
+
+
+
