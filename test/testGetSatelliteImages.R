@@ -11,7 +11,7 @@ test <- function(x) {
     utm_zones = c(31, 29, 32, 32, 45, 45, 31)
 
     for (i in long) {
-      expect_that(getUTMZone(long[i]), equals(utm_zones[i]))
+      expect_equal(getUTMZone(long[i]), utm_zones[i])
     }
   })
 
