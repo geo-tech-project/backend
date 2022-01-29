@@ -301,16 +301,12 @@ app.post("/deleteFiles", async (req, res) => {
 app.post("/getGeoJSON", async (req, res) => {
     console.log(req.body)
     try {
-        // res.status(200).send(json)
-        callMethodAsync(__dirname + "/R/convertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body).then((result) => {
-            console.log(result);
-            res.send(result);
-        }).catch((error) => {
-            console.error(error);
-            res.send(error);
-        })
-    } catch (err) {
-        res.status(400).send(err);
+        let output = await R.callMethodAsync(__dirname + "/R/convertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body)
+        console.log(output);
+        res.send(output);
+    } catch (error) {
+        console.error(error);
+        res.status(400).send(error);
     }
 });
 
