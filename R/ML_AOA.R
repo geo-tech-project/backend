@@ -189,26 +189,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   model <- readRDS(modelPath)
   
   # check if all predictors are in the data the predictions are made on
-  if (model$method == 'rf') {
-    predictors <- model$finalModel$xNames
-    bands <- names(stack)
-    for (i in 1:length(predictors)) {
-      if (!(predictors[i] %in% bands)) {
-        return(1)
-      }
-    }
-  } else if (model$method == 'svmRadial') {
-    predictors <- names(model$finalModel@scaling$x.scale$`scaled:scale`)
-    bands <- names(stack)
-    for (i in 1:length(predictors)) {
-      if (!(predictors[i] %in% bands)) {
-        return(1)
-      }
-    }
-  } else {
-    return(4)
-  }
-  
+  checkPredictors(model, stack)
   
   # prediction
   prediction <- predict(stack,model)
@@ -257,3 +238,25 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   return(0)
 }
 
+
+checkPredictors <- function(model, stack) {
+  if (model$method == 'rf') {
+    predictors <- model$finalModel$xNames
+    bands <- names(stack)
+    for (i in 1:length(predictors)) {
+      if (!(predictors[i] %in% bands)) {
+        return(1)
+      }
+    }
+  } else if (model$method == 'svmRadial') {
+    predictors <- names(model$finalModel@scaling$x.scale$`scaled:scale`)
+    bands <- names(stack)
+    for (i in 1:length(predictors)) {
+      if (!(predictors[i] %in% bands)) {
+        return(1)
+      }
+    }
+  } else {
+    return(4)
+  }
+}

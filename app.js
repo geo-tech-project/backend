@@ -267,7 +267,7 @@ app.get("/async", (req, res, next) => {
 
 
 // route to upload file only for multer
-app.post('/upload', upload.single('file'), function (req, res) {
+app.post('/upload', upload.single('file'), async function (req, res) {
     if (!req.file) {
         console.log("No file is available!");
         return res.send({
@@ -276,6 +276,19 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
     } else {
         console.log('File is available!');
+        console.log(req.file.originalname)
+
+        let path = "./public/uploads/" + req.file.originalname;
+        let valid = await validateTrainingData(path);
+        if (valid.status === "error") {
+            await deleteFiles(__dirname + "/public/uploads", "dummy");
+            res.status(401).send({
+                status: "error",
+                message: 'Invalid training data',
+                error: valid
+            });
+            return
+        }
         return res.send({
             success: true
         })
@@ -284,6 +297,7 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
 app.post("/deleteFiles", async (req, res) => {
     console.log("delete files from public/uploads");
+    console.log(req.body.file)
     let json = {
         text: "The files were deleted successfully"
     }
@@ -301,6 +315,18 @@ app.post("/deleteFiles", async (req, res) => {
 
 app.post("/getGeoJSON", async (req, res) => {
     console.log(req.body)
+    // console.log(req.body);
+    // let response = {}
+    // let path = "./public/uploads/" + req.body.filename;
+    // let valid = await validateTrainingData(path);
+    // if (valid.status === "error") {
+    //     res.status(401).send({
+    //         status: "error",
+    //         message: 'Invalid training data',
+    //         error: valid
+    //     });
+    //     return
+    // }
     try {
         let output = await R.callMethodAsync(__dirname + "/R/convertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body)
         console.log(output);
