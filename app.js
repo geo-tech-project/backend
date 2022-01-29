@@ -102,6 +102,7 @@ let upload = multer({
  */
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'doc')));
 //Setting up the app
 app.use(express.json());
 app.use(bodyParser.json());
