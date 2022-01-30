@@ -304,7 +304,7 @@ app.post("/deleteFiles", async (req, res) => {
 app.post("/getGeoJSON", async (req, res) => {
     console.log(req.body)
     try {
-        let output = await R.callMethodAsync(__dirname + "/R/ConvertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body)
+        let output = await R.callMethodAsync(__dirname + "/R/ConvertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", {filename: req.body.filename, filepath: req.body.filepath})
         console.log(output);
         res.send(output);
     } catch (error) {
