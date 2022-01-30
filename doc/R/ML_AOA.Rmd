@@ -1,41 +1,28 @@
-# R Script for estimation applicabillity tool
+---
+title: "Documentation ML_AOA.R"
+author: "Fabian Schumacher"
+date: "25 1 2022"
+output: html_document
+---
 
-#####################
-# Training function #
-#####################
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-# Matching user story
-#####################
-# As a user I want to choose a default machine learning algorithm and provide training data.
-# I want a default model to be set up with my inputs and I want it to be trained with the training data I provided.
-# In the end I want to be able to download the my new model.
+### Remove all variables from current environment
+First of all remove all the variables from the current environment.
+```{r remove_all_variables}
+rm(list=ls())
+```
 
-# When is the script used/executed?
-################################### 
-# If the user chooses a default machine learning algorithm and provides training data.
-
-# What does the script do?
-##########################
-# Sets up a default model, trains it with the training data based on satellite imagery and returns the trained model.
-
-# Inputs
-########
-# -Information about the algorithm to be used.
-# -Training Polygons
-# -Satellite imagery for the training data (provided by another script and stored on the server)
-
-# Outputs
-#########
-# -Trained model as .rds file
-
-# setwd("~/Documents/Studium/5. Semester/Geosoftware_II/geo-tech-project/backend")
-# algorithm = 'svmRadial'
-# trainingDataPath = './public/uploads/trainingsdaten_muenster_32632.gpkg'
-# hyperparameter = c(2)
-# hyperparameter = c(1, 1)
-# desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
-
-
+### Function for model training
+**parameters:** \
+**algorithm:** (String) Abbreviation for the model type (algorithm) to be used ('rf' or 'svmRadial') \
+**trainingDataPath** (String) Relative path of the training data \
+**hyperparameter** (Number[]) Array with the hyperparameter for the wanted algorithm \
+**desiredBands** (String[]) Array with the desired bands from the sentinel \
+**returns:** See return codes
+```{r training}
 training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) {
 
   # load packages
@@ -120,45 +107,44 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   # return
   return(0)
 }
+```
+
+### Function to check if the stack has all the predictors the model chosen model uses
+**parameters:** \
+**stack** (RasterStack) relative filepath of the model to be used \
+**model** (Large train) model object that was read from .RDS file \
+**returns:** See return codes
+```{r checkPredictors}
+checkPredictors <- function(model, stack) {
+  if (model$method == 'rf') {
+    predictors <- model$finalModel$xNames
+    bands <- names(stack)
+    for (i in 1:length(predictors)) {
+      if (!(predictors[i] %in% bands)) {
+        return(1)
+      }
+    }
+  } else if (model$method == 'svmRadial') {
+    predictors <- names(model$finalModel@scaling$x.scale$`scaled:scale`)
+    bands <- names(stack)
+    for (i in 1:length(predictors)) {
+      if (!(predictors[i] %in% bands)) {
+        return(1)
+      }
+    }
+  } else {
+    return(4)
+  }
+}
+```
 
 
-
-
-###################################
-# Classification and AOA function #
-###################################
-
-# Matching user story
-#####################
-# As a user I want my AoI to be classified based on Sentinel 2 imagery. In addition I want to know how applicable the model is, which I
-# used for my classification. Therefore I want the AOA to be calculated for my classification. If the model is not applicable I want to know
-# where I need to collect additional training data. In the end it should be possible for me to download my classification, my AOA and
-# recomended training locations.
-
-# When is the script used/executed?
-################################### 
-# In all cases of client usage.
-
-# What does the script do?
-##########################
-# Calculates the classification, the AOA for the given AoI (based on satellite imagery cropped and calculated in another script) and
-# further recommended training locations.
-# In the end all three parts are returned and stored to make them available as downloads.
-
-# Inputs
-########
-# -The trained model to use for calculations
-# -Satellite imagery for AoI (provided by another script and stored on the server)
-
-# Outputs
-#########
-# -Classification
-# -AOA
-# -Recommended training locations
-
-modelPath = "R/model/model.RDS"
-# desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
-
+### Function for classifiation and AOA
+**parameters:** \
+**modelPath** (String) relative filepath of the model to be used \
+**desiredBands** (String[]) Array with the desired bands from the sentinel \
+**returns:** See return codes
+```{r classifyAndAOA}
 classifyAndAOA <- function(modelPath, desiredBands) {
 
   # load packages
@@ -182,7 +168,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   }
 
   # load raster stack from data directory
-  stack <- stack("./R/processed_sentinel_images/aoi.tif")
+  stack <- stack("R/processed_sentinel_images/aoi.tif")
   names(stack) <- desiredBands
   stack <- dropLayer(stack, length(names(stack)))
 
@@ -241,26 +227,14 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   # return
   return(0)
 }
+```
+
+## Return Codes
+The main functions returning codes, which indicating if the creating of a TIF file was successful or not. If it was not successful the code indicates why the program have not run successful. \
+**0** - Function successfull \
+**1** - Predictor of model is missing in the given Sentinel-Tiff (aoi.tif; only relevant if working with user model) \
+**2** - Unexpected Error (return code set in Javascript) \
+**3** - Function not executed (return code set in Javascript) \
+**4** - Model type is not supported (only relevant if working with user model)
 
 
-checkPredictors <- function(model, stack) {
-  if (model$method == 'rf') {
-    predictors <- model$finalModel$xNames
-    bands <- names(stack)
-    for (i in 1:length(predictors)) {
-      if (!(predictors[i] %in% bands)) {
-        return(1)
-      }
-    }
-  } else if (model$method == 'svmRadial') {
-    predictors <- names(model$finalModel@scaling$x.scale$`scaled:scale`)
-    bands <- names(stack)
-    for (i in 1:length(predictors)) {
-      if (!(predictors[i] %in% bands)) {
-        return(1)
-      }
-    }
-  } else {
-    return(4)
-  }
-}
