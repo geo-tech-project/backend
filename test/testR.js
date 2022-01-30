@@ -27,6 +27,10 @@ scriptsToTest = [
     {
         scriptName: "./testCheck_TrainingData.R",
         functionName: "test"
+    },
+    {
+        scriptName: "./testConvertGeoPackageToGeoJson.R",
+        functionName: "test"
     }
 ]
 
