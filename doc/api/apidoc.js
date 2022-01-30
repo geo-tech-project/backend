@@ -280,45 +280,6 @@ const apiDocumentation = {
               }
             }
           },
-          "401": {
-            description: "The training data were invalid",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    status:{
-                      type: "string",
-                      example: "error",
-                    },
-                    message: {
-                      type: "string",
-                      example: "The training data were invalid"
-                    },
-                    error: {
-                      type: "object",
-                      properties: {
-                        status: {
-                          type: "string",
-                          example: "error",
-                        },
-                        error:{
-                          type: "string",
-                          example: "Training Data: A 'Label' can not be empty"
-                        },
-                        code: {
-                          type: "number",
-                          example: 1
-                        }
-
-                      }
-                    }
-                  }
-
-                }
-              }
-            }
-          },
           "402": {
             description: "For the input date period and cloud coverage where no items found",
             content: {
@@ -568,36 +529,6 @@ const apiDocumentation = {
         }
       }
     },
-    "/rundemo": {
-      get: {
-        tags: ["run demo"],
-        summary: "Run the demo",
-        description: "Runs the demo",
-        operationId: "runDemo",
-        responses: {
-          "200": {
-            description: "The demo run successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object"
-                }
-              }
-            }
-          },
-          "400": {
-            description: "An error occured",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/upload": {
       post: {
         tags: ["file upload"],
@@ -630,7 +561,46 @@ const apiDocumentation = {
                 }
               }
             }
-          }
+          },
+          "401": {
+            description: "The training data were invalid",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status:{
+                      type: "string",
+                      example: "error",
+                    },
+                    message: {
+                      type: "string",
+                      example: "The training data were invalid"
+                    },
+                    error: {
+                      type: "object",
+                      properties: {
+                        status: {
+                          type: "string",
+                          example: "error",
+                        },
+                        error:{
+                          type: "string",
+                          example: "Training Data: A 'Label' can not be empty"
+                        },
+                        code: {
+                          type: "number",
+                          example: 1
+                        }
+
+                      }
+                    }
+                  }
+
+                }
+              }
+            }
+          },
         }
       }
     },
