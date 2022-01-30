@@ -36,7 +36,7 @@
 # desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
 
 
-training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) {
+training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands, additionalIndices) {
 
   # load packages
   library(raster)
@@ -57,6 +57,23 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 
   # drop the SCL band
   stack <- dropLayer(stack, length(names(stack)))
+
+  # create additionalIndices bands
+  if ('NDVI' %in% additionalIndices) {
+    stack$NDVI <- (stack$B08-stack$B04)/(stack$B08+stack$B04)
+  }
+  if ('NDVI_SD_3x3' %in% additionalIndices) {
+    stack$NDVI_SD_3x3 <- focal(stack$NDVI,w=matrix(1/9, nc=3, nr=3), fun=sd, na.rm=TRUE)
+  }
+  if ('NDVI_SD_5x5' %in% additionalIndices) {
+    stack$NDVI_SD_5x5 <- focal(stack$NDVI,w=matrix(1/25, nc=5, nr=5), fun=sd, na.rm=TRUE)
+  }
+  if ('BSI' %in% additionalIndices) {
+    stack$BSI <- ( (stack$B11 + stack$B04) - (stack$B08 + stack$B02) ) / ( (stack$B11 + stack$B04) + (stack$B08 + stack$B02) )
+  }
+  if ('BAEI' %in% additionalIndices) {
+    stack$BAEI <- (stack$B04 + 0.3) / (stack$B03 + stack$B11)
+  }
   
   # load training data
   trainSites <- read_sf(trainingDataPath)
@@ -159,7 +176,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 modelPath = "R/model/model.RDS"
 # desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
 
-classifyAndAOA <- function(modelPath, desiredBands) {
+classifyAndAOA <- function(modelPath, desiredBands, additionalIndices) {
 
   # load packages
   library(raster)
@@ -183,8 +200,29 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # load raster stack from data directory
   stack <- stack("./R/processed_sentinel_images/aoi.tif")
+
+  # name the stack bands
   names(stack) <- desiredBands
+
+  # drop the SCL band
   stack <- dropLayer(stack, length(names(stack)))
+
+  # create additionalIndices bands
+  if ('NDVI' %in% additionalIndices) {
+    stack$NDVI <- (stack$B08-stack$B04)/(stack$B08+stack$B04)
+  }
+  if ('NDVI_SD_3x3' %in% additionalIndices) {
+    stack$NDVI_SD_3x3 <- focal(stack$NDVI,w=matrix(1/9, nc=3, nr=3), fun=sd, na.rm=TRUE)
+  }
+  if ('NDVI_SD_5x5' %in% additionalIndices) {
+    stack$NDVI_SD_5x5 <- focal(stack$NDVI,w=matrix(1/25, nc=5, nr=5), fun=sd, na.rm=TRUE)
+  }
+  if ('BSI' %in% additionalIndices) {
+    stack$BSI <- ( (stack$B11 + stack$B04) - (stack$B08 + stack$B02) ) / ( (stack$B11 + stack$B04) + (stack$B08 + stack$B02) )
+  }
+  if ('BAEI' %in% additionalIndices) {
+    stack$BAEI <- (stack$B04 + 0.3) / (stack$B03 + stack$B11)
+  }
 
   # load model from data directory
   model <- readRDS(modelPath)
