@@ -130,6 +130,7 @@ let upload = multer({
  */
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'doc')));
 //Setting up the app
 app.use(express.json());
 app.use(bodyParser.json());
@@ -139,6 +140,17 @@ app.use(express.urlencoded({
 app.use(cors());
 
 app.post('/start', async (req, res, next) => {
+    if (req.body.areyouatest) {
+        //copy files to uplaods
+        fs.copyFile(__dirname + '/R/test_data/model.RDS', __dirname + '/public/uploads/model.RDS', (err) => {
+            if (err) throw err;
+            console.log('model for testrun copied to destination');
+        });
+        fs.copyFile(__dirname + '/R/test_data/trainingsdaten_muenster_32632.gpkg', __dirname + '/public/uploads/trainingsdaten_muenster_32632.gpkg', (err) => {
+            if (err) throw err;
+            console.log('training data for testrun copied to destination');
+        });
+    }
 
     /**
      * Formatting all needed incomingData in the way the getData function needs them.
@@ -171,26 +183,19 @@ app.post('/start', async (req, res, next) => {
     } else {
         console.log(req.body);
         let response = {}
-        if (req.body.option === "data") {
-            let path = "./public/uploads/" + req.body.filename;
-            let valid = await validateTrainingData(path);
-            if (valid.status === "error") {
-                res.status(401).send({
-                    status: "error",
-                    message: 'Invalid training data',
-                    error: valid
-                });
-                return
-            }
-        }
         response.stac = await getData(req.body);
         if (response.stac.status === "error") {
             res.status(402).send(response);
             console.log("/start 400", response);
         } else {
             response.aoa = await calculateAOA(req.body);
-            console.log("/start 200", response);
-            res.send(response);
+            if (response.aoa.status === "error") {
+                res.status(403).send(response);
+                console.log("/start 400", response)
+            } else {
+                console.log("/start 200", response);
+                res.send(response);
+            }
         }
     }
 });
@@ -240,45 +245,8 @@ app.get('/marker', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/marker.png'));
 })
 
-app.get('/rundemo', (req, res, next) => {
-    console.log('calculation demo..');
-    callMethodAsync(__dirname + "/R/DEMO.R", "rundemo", ["data"]).then((result) => {
-        console.log(result);
-        res.send(result);
-    }).catch((error) => {
-        console.error(error);
-        res.send(error);
-    })
-})
-
-// async prototype
-app.get("/async", (req, res, next) => {
-    console.log("testing asyncronously...")
-    // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
-    //let trees = 75;
-    callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {
-            algorithm: 'rf',
-            data: '[3]'
-        }) //Hyperparameter für die Algorithmen
-        .then((result) => {
-            console.log(result)
-            callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
-                .then((result) => {
-                    console.log(result);
-                    res.send('success')
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
-        })
-        .catch((error) => {
-            console.error(error);
-        })
-})
-
-
 // route to upload file only for multer
-app.post('/upload', upload.single('file'), function (req, res) {
+app.post('/upload', upload.single('file'), async function (req, res) {
     if (!req.file) {
         console.log("No file is available!");
         return res.send({
@@ -287,6 +255,19 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
     } else {
         console.log('File is available!');
+        console.log(req.file.originalname)
+
+        let path = "./public/uploads/" + req.file.originalname;
+        let valid = await validateTrainingData(path);
+        if (valid.status === "error") {
+            await deleteFiles(__dirname + "/public/uploads", "dummy");
+            res.status(401).send({
+                status: "error",
+                message: 'Invalid training data',
+                error: valid
+            });
+            return
+        }
         return res.send({
             success: true
         })
@@ -295,6 +276,7 @@ app.post('/upload', upload.single('file'), function (req, res) {
 
 app.post("/deleteFiles", async (req, res) => {
     console.log("delete files from public/uploads");
+    console.log(req.body.file)
     let json = {
         text: "The files were deleted successfully"
     }
@@ -313,38 +295,14 @@ app.post("/deleteFiles", async (req, res) => {
 app.post("/getGeoJSON", async (req, res) => {
     console.log(req.body)
     try {
-        // res.status(200).send(json)
-        callMethodAsync(__dirname + "/R/convertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body).then((result) => {
-            console.log(result);
-            res.send(result);
-        }).catch((error) => {
-            console.error(error);
-            res.send(error);
-        })
-    } catch (err) {
-        res.status(400).send(err);
+        let output = await R.callMethodAsync(__dirname + "/R/ConvertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", {filename: req.body.filename, filepath: req.body.filepath})
+        console.log(output);
+        res.send(output);
+    } catch (error) {
+        console.error(error);
+        res.status(400).send(error);
     }
 });
-
-// get markdown file from repo
-app.get('/markdown', (req, res, next) => {
-    https.get('https://raw.githubusercontent.com/geo-tech-project/frontend/main/README.md', (resp) => {
-        let data = '';
-
-        // A chunk of data has been received.
-        resp.on('data', (chunk) => {
-            data += chunk;
-        });
-
-        // The whole response has been received. Print out the result.
-        resp.on('end', () => {
-            res.send(data)
-        });
-
-    }).on("error", (err) => {
-        console.log("Error: " + err.message);
-    });
-})
 
 /**
  * Checking if the file at the given path actual exists. If not the function send a 404 error to the given response object.
@@ -394,7 +352,7 @@ function deleteFiles(dirPath, fileName) {
     });
 }
 
-app.use('/documentation', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
+app.use('/api', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
 
 
 app.listen(PORT, () => {
@@ -417,7 +375,7 @@ module.exports = app;</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jan 24 2022 14:01:50 GMT+0100 (Mitteleuropäische Normalzeit)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sun Jan 30 2022 18:47:31 GMT+0100 (Mitteleuropäische Normalzeit)
 </footer>
 
 <script> prettyPrint(); </script>
