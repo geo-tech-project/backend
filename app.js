@@ -155,18 +155,6 @@ app.post('/start', async (req, res, next) => {
     } else {
         console.log(req.body);
         let response = {}
-        if (req.body.option === "data") {
-            let path = "./public/uploads/" + req.body.filename;
-            let valid = await validateTrainingData(path);
-            if (valid.status === "error") {
-                res.status(401).send({
-                    status: "error",
-                    message: 'Invalid training data',
-                    error: valid
-                });
-                return
-            }
-        }
         response.stac = await getData(req.body);
         if (response.stac.status === "error") {
             res.status(402).send(response);
@@ -315,18 +303,6 @@ app.post("/deleteFiles", async (req, res) => {
 
 app.post("/getGeoJSON", async (req, res) => {
     console.log(req.body)
-    // console.log(req.body);
-    // let response = {}
-    // let path = "./public/uploads/" + req.body.filename;
-    // let valid = await validateTrainingData(path);
-    // if (valid.status === "error") {
-    //     res.status(401).send({
-    //         status: "error",
-    //         message: 'Invalid training data',
-    //         error: valid
-    //     });
-    //     return
-    // }
     try {
         let output = await R.callMethodAsync(__dirname + "/R/convertGeoPackageToGeoJson.R", "convertGeoPackageToGeoJson", req.body)
         console.log(output);
