@@ -217,43 +217,6 @@ app.get('/marker', (req, res, next) => {
     res.sendFile(path.join(__dirname, './public/marker.png'));
 })
 
-app.get('/rundemo', (req, res, next) => {
-    console.log('calculation demo..');
-    callMethodAsync(__dirname + "/R/DEMO.R", "rundemo", ["data"]).then((result) => {
-        console.log(result);
-        res.send(result);
-    }).catch((error) => {
-        console.error(error);
-        res.send(error);
-    })
-})
-
-// async prototype
-app.get("/async", (req, res, next) => {
-    console.log("testing asyncronously...")
-    // hier fehlt noch eine Abfrage für den Fall das ein fertiges Modell hochgeladen wird//let algorithm = '"rf"';
-    //let trees = 75;
-    callMethodAsync(__dirname + "/R/ML_AOA.R", "training", {
-        algorithm: 'rf',
-        data: '[3]'
-    }) //Hyperparameter für die Algorithmen
-        .then((result) => {
-            console.log(result)
-            callMethodAsync(__dirname + "/R/ML_AOA.R", "classifyAndAOA", ["success"])
-                .then((result) => {
-                    console.log(result);
-                    res.send('success')
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
-        })
-        .catch((error) => {
-            console.error(error);
-        })
-})
-
-
 // route to upload file only for multer
 app.post('/upload', upload.single('file'), async function (req, res) {
     if (!req.file) {
@@ -312,26 +275,6 @@ app.post("/getGeoJSON", async (req, res) => {
         res.status(400).send(error);
     }
 });
-
-// get markdown file from repo
-app.get('/markdown', (req, res, next) => {
-    https.get('https://raw.githubusercontent.com/geo-tech-project/frontend/main/README.md', (resp) => {
-        let data = '';
-
-        // A chunk of data has been received.
-        resp.on('data', (chunk) => {
-            data += chunk;
-        });
-
-        // The whole response has been received. Print out the result.
-        resp.on('end', () => {
-            res.send(data)
-        });
-
-    }).on("error", (err) => {
-        console.log("Error: " + err.message);
-    });
-})
 
 /**
  * Checking if the file at the given path actual exists. If not the function send a 404 error to the given response object.

@@ -13,8 +13,8 @@
     "type": "git",
     "url": "git+https://github.com/geo-tech-project/backend.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Henning Sander, Frederick Bruch, Jakob Danel, Fabian Schumacher, Thalis Goldschmidt",
+  "license": "GPL3.0",
   "bugs": {
     "url": "https://github.com/geo-tech-project/backend/issues"
   },
