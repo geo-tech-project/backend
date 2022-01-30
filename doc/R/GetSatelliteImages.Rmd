@@ -1,24 +1,17 @@
 ---
 title: "Documentation GetSatelliteImages.R"
-author: "Jakob Danel"
-date: "25 1 2022"
+author: "Jakob Danel, Thalis Goldschmidt"
+date: "25-01-2022"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-### Remove all variables from current environment
-First of all remove all the variables from the current environment.
-```{r remove_all_variables}
-rm(list=ls())
-```
-
 ## Functions
 
-### Function to get the UTM zone from longitude.
-A function to get a UTM zone to a given longitude \
+### getUTMZone(longitude)
+A function that returns a UTM zone to a given longitude. \
 **parameters:** \
 **longitude** (Float) of a coordinate in WGS84 \
 **returns:** (Number) The Number of the UTM zone from the given longitude
@@ -27,9 +20,9 @@ getUTMZone <- function (longitude){
   return( (floor((longitude + 180)/6) %% 60) + 1)
 }
 ```
-### Function that gets the EPSG code from a UTM zone
-
-All EPSG codes to be returned are in UTM coordinates of WGS84 \
+### epsgCodeFromUTMzone(utmZone)
+Function that gets the EPSG code from a UTM zone.
+All EPSG codes to be returned are in UTM coordinates of WGS84. \
 **parameters:** \
 **utmZone** (Integer) The zone number \
 **returns:** (String) The EPSG Code of the given utmZone
@@ -45,8 +38,9 @@ epsgCodeFromUTMzone <- function(utmZone){
   return(paste("EPSG:326",string, sep=""))
 }
 ```
-### Function that returns the EPSG code of an CRS depending on the longitude.
-All EPSG codes to be returned are in UTM coordinates of WGS84.
+### getEPSG(longitude)
+Function that returns the EPSG code of an CRS depending on the longitude.
+All EPSG codes to be returned are in UTM coordinates of WGS84.\
 **parameters:** \
 **longitude** (Float) of a coordinate in WGS84 \
 **returns:** (String) The EPSG code of the given longitude
@@ -57,8 +51,10 @@ getEPSG <- function(longitude){
   return(epsg)
 }
 ```
-### Function to transform a bbox of any CRS to a bbox with a WGS84 CRS.
-**parameters:** bbox of the area of interest \
+### bboxToWGS84(bbox)
+Function to transform a bbox of any CRS to a bbox with a WGS84 CRS. \
+**parameters:** \
+**bbox** of the area of interest \
 **returns:** (bbox) The bbox in WGS84 coordinate system
 ```{r bboxToWGS84}
 bboxToWGS84 <- function(bbox){
@@ -70,13 +66,14 @@ bboxToWGS84 <- function(bbox){
 }
 ```
 
-### Function that creates a bbox from two coordinates (bottom left and top right coordinates).
+### getBBoxFromAOI(bottomLeftX,bottomLeftY,topRightX,topRightY)
+Function that creates a bbox from two coordinates (bottom left and top right coordinates). \
 **parameters:** \
 **bottomLeftX** (Float) \
 **bottomLeftY** (Float)\
 **topRightX** (Float) \
 **topRightY** (Float) \
-**returns:** (bbox) Creates an bbox object from the given bounding box coordinates
+**returns:** (bbox) An bbox object from the given bounding box coordinates
 ```{r getBBoxFromAOI}
 getBBoxFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY) {
   library(rgeos)
@@ -85,7 +82,8 @@ getBBoxFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topRightY) {
   return (bbox)
 }
 ```
-### Function that transforms a bbox with a WGS84 CRS to a bbox with the same CRS used in the cube view function.
+### transformBBOXcrsToUTM(bboxWGS84)
+Function that transforms a bbox with a WGS84 CRS to a bbox with the same CRS used in the cube view function.\
 **parameters:** \
 **bboxWGS84** bbox of the area of interest in WGS84 \
 **returns:** bbox in the reference system with the correct UTM zone
@@ -103,7 +101,8 @@ transformBBOXcrsToUTM <- function(bboxWGS84){
 }
 ```
 
-### Function that transforms the training data to the same CRS used in the cube view function.
+### transformTrainingDataToCRSFromCube(trainingData)
+Function that transforms the training data to the same CRS used in the cube view function.\
 **parameters:** \
 **trainingData** \
 **returns:** The trainingData transformed into the UTM zone of the cube view
@@ -117,7 +116,8 @@ transformTrainingDataToCRSFromCube <- function(trainingData) {
   return (trainingDataInCRSFromCube)
 }
 ```
-### Function that returns the number of days that are within a date period.
+### numberOfDaysFromPeriod(datetime)
+Function that returns the number of days that are within a date period (last day excluded).\
 **parameters:** \ 
 **datetime** (String): "YYYY-MM-DD/YYYY-MM-DD" \
 **returns:** (Number) The number of days in this period
@@ -134,7 +134,8 @@ numberOfDaysFromPeriod <- function(datetime) {
   return(survey$date_diff)
 }
 ```
-### Function that returns useable satellite images from the stac catalogue.
+### stacRequest(bbox, datetime, limit)
+Function that returns useable satellite images from the stac catalogue. \
 **parameters:** \
 **bbox** of area of interest in any CRS \
 **datetime** (String): (example: "2021-06-01/2021-06-30") \
@@ -156,8 +157,10 @@ stacRequest <- function(bbox, datetime, limit) {
 }
 ```
 
-### Function that creates an image collection. \
-**parameters:** - desiredBands (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) \
+### createImageCollection(desiredBands, cloudCoverageInPercentage, items)
+Function that creates an image collection. \
+**parameters:** \
+**desiredBands** (vector of Strings): c("B01", "B02", "B03", "SCL") (SCL-BAND MUST BE INCLUDED) \
 **cloudCoverageInPercentage** (Float) \
 **items** found by the stac request \
 **returns** 3 if after the cloudFilter no Images are left, else the imageCollection
@@ -177,8 +180,9 @@ createImageCollection <- function(desiredBands, cloudCoverageInPercentage, items
   return(s2_collection)
 }
 ```
-### Function that creates the view of a cube.
-parameters: \
+### createCubeView(bboxUTM, resolution, datetime)
+Function that creates the view of a cube. \
+**parameters:** \
 **bbox** of area of interest in UTM coordinates \
 **resolution** in meters (Integer): (options: 10/20/60/100/200/400) \
 **datetime** (String): (example: "2021-06-01/2021-06-30") \
@@ -199,7 +203,8 @@ createCubeView <- function(bboxUTM, resolution, datetime){
   return (v.bbox.overview)
 }
 ```
-### Function that creates the needed satellite image from the training data as a tif file.
+### createTifFileFromTrainingDat(imageCollection, cubeView, trainingData)
+Function that creates the needed satellite image from the training data as a tif file. \
 **parameters:** \
 **image collection** (from createImageCollection function) \
 **cube view** (from createCubeView function) \
@@ -235,7 +240,8 @@ createTifFileFromTrainingData <- function(imageCollection, cubeView, trainingDat
 }
 ```
 
-### Function that combines all prior functions to one function. It generates a satellite image as a tif file.
+### generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)
+Function that combines all prior functions to one function. It generates a satellite image as a tif file.\
 **parameters:** \
 **trainingDataPath:** path to where the training data is stored \
 **datetime** (String): (example: "2021-06-01/2021-06-30") \
@@ -275,8 +281,9 @@ generateSatelliteImageFromTrainingData <- function(trainingDataPath, datetime, l
   return(0)
 }
 ``` 
-### Function that creates the needed satellite image from the training data as a tif file.
-**parameters:** \ 
+### createTifFileFromAOI(imageCollection,cubeView)
+Function that creates the needed satellite image from the training data as a tif file. \
+**parameters:** \
 **image collection** (from createImageCollection function) \
 **cube view** (from createCubeView function) \
 **returns:** (void)
@@ -308,7 +315,8 @@ createTifFileFromAOI <- function(imageCollection,cubeView){
 
 }
 ```
-### Function that combines all prior functions to one function. It generates a satellite image as a tif file.
+### generateSatelliteImageFromAOI(bottomLeftX,bottomLeftY,topRightX,topRightY,datetime,limit,desiredBands,resolution,cloudCoverageInPercentage)
+Function that combines all prior functions to one function. It generates a satellite image as a tif file. \
 **parameters:** \
 **bottomLeftX** (Float) \
 **bottomLeftY** (Float) \
@@ -348,7 +356,8 @@ generateSatelliteImageFromAOI <- function(bottomLeftX,bottomLeftY,topRightX,topR
   return(0)
 }
 ```
-### Function that loads and plots a tif file depending on a file path.
+### plotTifFile(filePath)
+Function that loads and plots a tif file depending on a file path. \
 **parameters:** \
 **filePath:** path to the stored tif \
 **return:** (void)
@@ -361,8 +370,8 @@ plotTifFile <- function(filePath){
 }
 ```
 ## Return Codes
-The main functions returning codes, which indicating if the creating of a TIF file was successful or not. If it was not successful the code indicates why the program have not run successful. \
+The main functions returns codes, which indicates if the creatiion of a TIF file was successful or not. If it was not successful the code indicates why the program failed. \
 **0** - TIF file was successful created \
 **1** - For the given date period and area where no items found \
-**2** - Unexpected Error \
-**3** - After filtering the results from stac_request with the cloud coverage no images where left \
+**2** - Unexpected rrror \
+**3** - After filtering the results from the stac_request by the cloud coverage no images were left \

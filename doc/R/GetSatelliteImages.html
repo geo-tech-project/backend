@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Jakob Danel" />
+<meta name="author" content="Jakob Danel, Thalis Goldschmidt" />
 
 
 <title>Documentation GetSatelliteImages.R</title>
@@ -165,22 +165,17 @@ pre code {
 
 
 <h1 class="title toc-ignore">Documentation GetSatelliteImages.R</h1>
-<h4 class="author">Jakob Danel</h4>
-<h4 class="date">25 1 2022</h4>
+<h4 class="author">Jakob Danel, Thalis Goldschmidt</h4>
+<h4 class="date">25-01-2022</h4>
 
 </div>
 
 
-<div id="remove-all-variables-from-current-environment" class="section level3">
-<h3>Remove all variables from current environment</h3>
-<p>First of all remove all the variables from the current environment.</p>
-<pre class="r"><code>rm(list=ls())</code></pre>
-</div>
 <div id="functions" class="section level2">
 <h2>Functions</h2>
-<div id="function-to-get-the-utm-zone-from-longitude." class="section level3">
-<h3>Function to get the UTM zone from longitude.</h3>
-<p>A function to get a UTM zone to a given longitude<br />
+<div id="getutmzonelongitude" class="section level3">
+<h3>getUTMZone(longitude)</h3>
+<p>A function that returns a UTM zone to a given longitude.<br />
 <strong>parameters:</strong><br />
 <strong>longitude</strong> (Float) of a coordinate in WGS84<br />
 <strong>returns:</strong> (Number) The Number of the UTM zone from the given longitude</p>
@@ -188,9 +183,9 @@ pre code {
   return( (floor((longitude + 180)/6) %% 60) + 1)
 }</code></pre>
 </div>
-<div id="function-that-gets-the-epsg-code-from-a-utm-zone" class="section level3">
-<h3>Function that gets the EPSG code from a UTM zone</h3>
-<p>All EPSG codes to be returned are in UTM coordinates of WGS84<br />
+<div id="epsgcodefromutmzoneutmzone" class="section level3">
+<h3>epsgCodeFromUTMzone(utmZone)</h3>
+<p>Function that gets the EPSG code from a UTM zone. All EPSG codes to be returned are in UTM coordinates of WGS84.<br />
 <strong>parameters:</strong><br />
 <strong>utmZone</strong> (Integer) The zone number<br />
 <strong>returns:</strong> (String) The EPSG Code of the given utmZone</p>
@@ -205,9 +200,10 @@ pre code {
   return(paste(&quot;EPSG:326&quot;,string, sep=&quot;&quot;))
 }</code></pre>
 </div>
-<div id="function-that-returns-the-epsg-code-of-an-crs-depending-on-the-longitude." class="section level3">
-<h3>Function that returns the EPSG code of an CRS depending on the longitude.</h3>
-<p>All EPSG codes to be returned are in UTM coordinates of WGS84. <strong>parameters:</strong><br />
+<div id="getepsglongitude" class="section level3">
+<h3>getEPSG(longitude)</h3>
+<p>Function that returns the EPSG code of an CRS depending on the longitude. All EPSG codes to be returned are in UTM coordinates of WGS84.<br />
+<strong>parameters:</strong><br />
 <strong>longitude</strong> (Float) of a coordinate in WGS84<br />
 <strong>returns:</strong> (String) The EPSG code of the given longitude</p>
 <pre class="r"><code>getEPSG &lt;- function(longitude){
@@ -216,9 +212,11 @@ pre code {
   return(epsg)
 }</code></pre>
 </div>
-<div id="function-to-transform-a-bbox-of-any-crs-to-a-bbox-with-a-wgs84-crs." class="section level3">
-<h3>Function to transform a bbox of any CRS to a bbox with a WGS84 CRS.</h3>
-<p><strong>parameters:</strong> bbox of the area of interest<br />
+<div id="bboxtowgs84bbox" class="section level3">
+<h3>bboxToWGS84(bbox)</h3>
+<p>Function to transform a bbox of any CRS to a bbox with a WGS84 CRS.<br />
+<strong>parameters:</strong><br />
+<strong>bbox</strong> of the area of interest<br />
 <strong>returns:</strong> (bbox) The bbox in WGS84 coordinate system</p>
 <pre class="r"><code>bboxToWGS84 &lt;- function(bbox){
   library(sf)
@@ -228,14 +226,15 @@ pre code {
   return(bbox_WGS84)
 }</code></pre>
 </div>
-<div id="function-that-creates-a-bbox-from-two-coordinates-bottom-left-and-top-right-coordinates." class="section level3">
-<h3>Function that creates a bbox from two coordinates (bottom left and top right coordinates).</h3>
-<p><strong>parameters:</strong><br />
+<div id="getbboxfromaoibottomleftxbottomleftytoprightxtoprighty" class="section level3">
+<h3>getBBoxFromAOI(bottomLeftX,bottomLeftY,topRightX,topRightY)</h3>
+<p>Function that creates a bbox from two coordinates (bottom left and top right coordinates).<br />
+<strong>parameters:</strong><br />
 <strong>bottomLeftX</strong> (Float)<br />
 <strong>bottomLeftY</strong> (Float)<br />
 <strong>topRightX</strong> (Float)<br />
 <strong>topRightY</strong> (Float)<br />
-<strong>returns:</strong> (bbox) Creates an bbox object from the given bounding box coordinates</p>
+<strong>returns:</strong> (bbox) An bbox object from the given bounding box coordinates</p>
 <pre class="r"><code>getBBoxFromAOI &lt;- function(bottomLeftX,bottomLeftY,topRightX,topRightY) {
   library(rgeos)
   bbox &lt;- rgeos::bbox2SP(n = topRightY, s = bottomLeftY, w = bottomLeftX, e = topRightX,
@@ -243,9 +242,10 @@ pre code {
   return (bbox)
 }</code></pre>
 </div>
-<div id="function-that-transforms-a-bbox-with-a-wgs84-crs-to-a-bbox-with-the-same-crs-used-in-the-cube-view-function." class="section level3">
-<h3>Function that transforms a bbox with a WGS84 CRS to a bbox with the same CRS used in the cube view function.</h3>
-<p><strong>parameters:</strong><br />
+<div id="transformbboxcrstoutmbboxwgs84" class="section level3">
+<h3>transformBBOXcrsToUTM(bboxWGS84)</h3>
+<p>Function that transforms a bbox with a WGS84 CRS to a bbox with the same CRS used in the cube view function.<br />
+<strong>parameters:</strong><br />
 <strong>bboxWGS84</strong> bbox of the area of interest in WGS84<br />
 <strong>returns:</strong> bbox in the reference system with the correct UTM zone</p>
 <pre class="r"><code>transformBBOXcrsToUTM &lt;- function(bboxWGS84){
@@ -260,9 +260,10 @@ pre code {
   return (bbox)
 }</code></pre>
 </div>
-<div id="function-that-transforms-the-training-data-to-the-same-crs-used-in-the-cube-view-function." class="section level3">
-<h3>Function that transforms the training data to the same CRS used in the cube view function.</h3>
-<p><strong>parameters:</strong><br />
+<div id="transformtrainingdatatocrsfromcubetrainingdata" class="section level3">
+<h3>transformTrainingDataToCRSFromCube(trainingData)</h3>
+<p>Function that transforms the training data to the same CRS used in the cube view function.<br />
+<strong>parameters:</strong><br />
 <strong>trainingData</strong><br />
 <strong>returns:</strong> The trainingData transformed into the UTM zone of the cube view</p>
 <pre class="r"><code>transformTrainingDataToCRSFromCube &lt;- function(trainingData) {
@@ -274,9 +275,10 @@ pre code {
   return (trainingDataInCRSFromCube)
 }</code></pre>
 </div>
-<div id="function-that-returns-the-number-of-days-that-are-within-a-date-period." class="section level3">
-<h3>Function that returns the number of days that are within a date period.</h3>
-<p><strong>parameters:</strong>   <strong>datetime</strong> (String): “YYYY-MM-DD/YYYY-MM-DD”<br />
+<div id="numberofdaysfromperioddatetime" class="section level3">
+<h3>numberOfDaysFromPeriod(datetime)</h3>
+<p>Function that returns the number of days that are within a date period (last day excluded).<br />
+<strong>parameters:</strong>   <strong>datetime</strong> (String): “YYYY-MM-DD/YYYY-MM-DD”<br />
 <strong>returns:</strong> (Number) The number of days in this period</p>
 <pre class="r"><code>numberOfDaysFromPeriod &lt;- function(datetime) {
   date1 &lt;- substr(datetime,12,21)
@@ -290,9 +292,10 @@ pre code {
   return(survey$date_diff)
 }</code></pre>
 </div>
-<div id="function-that-returns-useable-satellite-images-from-the-stac-catalogue." class="section level3">
-<h3>Function that returns useable satellite images from the stac catalogue.</h3>
-<p><strong>parameters:</strong><br />
+<div id="stacrequestbbox-datetime-limit" class="section level3">
+<h3>stacRequest(bbox, datetime, limit)</h3>
+<p>Function that returns useable satellite images from the stac catalogue.<br />
+<strong>parameters:</strong><br />
 <strong>bbox</strong> of area of interest in any CRS<br />
 <strong>datetime</strong> (String): (example: “2021-06-01/2021-06-30”)<br />
 <strong>limit</strong> (Integer) -&gt; maximum count of found images from stac to be used <strong>returns:</strong> The stac image collection of the parameter matching images</p>
@@ -310,10 +313,11 @@ pre code {
   return(items)
 }</code></pre>
 </div>
-<div id="function-that-creates-an-image-collection." class="section level3">
-<h3>Function that creates an image collection.<br />
-</h3>
-<p><strong>parameters:</strong> - desiredBands (vector of Strings): c(“B01”, “B02”, “B03”, “SCL”) (SCL-BAND MUST BE INCLUDED)<br />
+<div id="createimagecollectiondesiredbands-cloudcoverageinpercentage-items" class="section level3">
+<h3>createImageCollection(desiredBands, cloudCoverageInPercentage, items)</h3>
+<p>Function that creates an image collection.<br />
+<strong>parameters:</strong><br />
+<strong>desiredBands</strong> (vector of Strings): c(“B01”, “B02”, “B03”, “SCL”) (SCL-BAND MUST BE INCLUDED)<br />
 <strong>cloudCoverageInPercentage</strong> (Float)<br />
 <strong>items</strong> found by the stac request<br />
 <strong>returns</strong> 3 if after the cloudFilter no Images are left, else the imageCollection</p>
@@ -332,9 +336,10 @@ pre code {
   return(s2_collection)
 }</code></pre>
 </div>
-<div id="function-that-creates-the-view-of-a-cube." class="section level3">
-<h3>Function that creates the view of a cube.</h3>
-<p>parameters:<br />
+<div id="createcubeviewbboxutm-resolution-datetime" class="section level3">
+<h3>createCubeView(bboxUTM, resolution, datetime)</h3>
+<p>Function that creates the view of a cube.<br />
+<strong>parameters:</strong><br />
 <strong>bbox</strong> of area of interest in UTM coordinates<br />
 <strong>resolution</strong> in meters (Integer): (options: 10/20/60/100/200/400)<br />
 <strong>datetime</strong> (String): (example: “2021-06-01/2021-06-30”)<br />
@@ -354,9 +359,10 @@ pre code {
   return (v.bbox.overview)
 }</code></pre>
 </div>
-<div id="function-that-creates-the-needed-satellite-image-from-the-training-data-as-a-tif-file." class="section level3">
-<h3>Function that creates the needed satellite image from the training data as a tif file.</h3>
-<p><strong>parameters:</strong><br />
+<div id="createtiffilefromtrainingdatimagecollection-cubeview-trainingdata" class="section level3">
+<h3>createTifFileFromTrainingDat(imageCollection, cubeView, trainingData)</h3>
+<p>Function that creates the needed satellite image from the training data as a tif file.<br />
+<strong>parameters:</strong><br />
 <strong>image collection</strong> (from createImageCollection function)<br />
 <strong>cube view</strong> (from createCubeView function)<br />
 <strong>training data</strong><br />
@@ -389,9 +395,10 @@ pre code {
   file.rename(paste(&quot;./R/processed_sentinel_images/&quot;,files[2],sep=&quot;&quot;),&quot;./R/processed_sentinel_images/trainingData.tif&quot;)
 }</code></pre>
 </div>
-<div id="function-that-combines-all-prior-functions-to-one-function.-it-generates-a-satellite-image-as-a-tif-file." class="section level3">
-<h3>Function that combines all prior functions to one function. It generates a satellite image as a tif file.</h3>
-<p><strong>parameters:</strong><br />
+<div id="generatesatelliteimagefromtrainingdatatrainingdatapath-datetime-limit-desiredbands-resolution-cloudcoverageinpercentage" class="section level3">
+<h3>generateSatelliteImageFromTrainingData(trainingDataPath, datetime, limit, desiredBands, resolution, cloudCoverageInPercentage)</h3>
+<p>Function that combines all prior functions to one function. It generates a satellite image as a tif file.<br />
+<strong>parameters:</strong><br />
 <strong>trainingDataPath:</strong> path to where the training data is stored<br />
 <strong>datetime</strong> (String): (example: “2021-06-01/2021-06-30”)<br />
 <strong>resolution</strong> in meters (Integer): (options: 10/20/60/100/200/400)<br />
@@ -429,9 +436,11 @@ pre code {
   return(0)
 }</code></pre>
 </div>
-<div id="function-that-creates-the-needed-satellite-image-from-the-training-data-as-a-tif-file.-1" class="section level3">
-<h3>Function that creates the needed satellite image from the training data as a tif file.</h3>
-<p><strong>parameters:</strong>   <strong>image collection</strong> (from createImageCollection function)<br />
+<div id="createtiffilefromaoiimagecollectioncubeview" class="section level3">
+<h3>createTifFileFromAOI(imageCollection,cubeView)</h3>
+<p>Function that creates the needed satellite image from the training data as a tif file.<br />
+<strong>parameters:</strong><br />
+<strong>image collection</strong> (from createImageCollection function)<br />
 <strong>cube view</strong> (from createCubeView function)<br />
 <strong>returns:</strong> (void)</p>
 <pre class="r"><code>createTifFileFromAOI &lt;- function(imageCollection,cubeView){
@@ -461,9 +470,10 @@ pre code {
 
 }</code></pre>
 </div>
-<div id="function-that-combines-all-prior-functions-to-one-function.-it-generates-a-satellite-image-as-a-tif-file.-1" class="section level3">
-<h3>Function that combines all prior functions to one function. It generates a satellite image as a tif file.</h3>
-<p><strong>parameters:</strong><br />
+<div id="generatesatelliteimagefromaoibottomleftxbottomleftytoprightxtoprightydatetimelimitdesiredbandsresolutioncloudcoverageinpercentage" class="section level3">
+<h3>generateSatelliteImageFromAOI(bottomLeftX,bottomLeftY,topRightX,topRightY,datetime,limit,desiredBands,resolution,cloudCoverageInPercentage)</h3>
+<p>Function that combines all prior functions to one function. It generates a satellite image as a tif file.<br />
+<strong>parameters:</strong><br />
 <strong>bottomLeftX</strong> (Float)<br />
 <strong>bottomLeftY</strong> (Float)<br />
 <strong>topRightX</strong> (Float)<br />
@@ -501,9 +511,10 @@ pre code {
   return(0)
 }</code></pre>
 </div>
-<div id="function-that-loads-and-plots-a-tif-file-depending-on-a-file-path." class="section level3">
-<h3>Function that loads and plots a tif file depending on a file path.</h3>
-<p><strong>parameters:</strong><br />
+<div id="plottiffilefilepath" class="section level3">
+<h3>plotTifFile(filePath)</h3>
+<p>Function that loads and plots a tif file depending on a file path.<br />
+<strong>parameters:</strong><br />
 <strong>filePath:</strong> path to the stored tif<br />
 <strong>return:</strong> (void)</p>
 <pre class="r"><code>plotTifFile &lt;- function(filePath){
@@ -516,11 +527,11 @@ pre code {
 </div>
 <div id="return-codes" class="section level2">
 <h2>Return Codes</h2>
-<p>The main functions returning codes, which indicating if the creating of a TIF file was successful or not. If it was not successful the code indicates why the program have not run successful.<br />
+<p>The main functions returns codes, which indicates if the creatiion of a TIF file was successful or not. If it was not successful the code indicates why the program failed.<br />
 <strong>0</strong> - TIF file was successful created<br />
 <strong>1</strong> - For the given date period and area where no items found<br />
-<strong>2</strong> - Unexpected Error<br />
-<strong>3</strong> - After filtering the results from stac_request with the cloud coverage no images where left<br />
+<strong>2</strong> - Unexpected rrror<br />
+<strong>3</strong> - After filtering the results from the stac_request by the cloud coverage no images were left<br />
 </p>
 </div>
 
