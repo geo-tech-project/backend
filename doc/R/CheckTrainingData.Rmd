@@ -1,0 +1,53 @@
+---
+title: 'Documentation: Check_TrainingData.R'
+author: "Fabian Schumacher, Henning Sander, Frederik Bruch, Thalis Goldschmidt, Jakob Danel"
+date: "30 1 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# checkTrainingData(path)
+This function is validating the incoming training data for their usability to train the model.
+The function returning status codes which indicating if they data are valid, and if not why their are not valid:
+**paramters:** \
+**path:** The path to the file where the training data are stored. \
+**return:** An status code: \
+**0** - The training data are valid \
+**1** - The training data have no column with the value "Label" \
+**2** - Some features do not contain Label values \
+**3** - The geometry of the object is not Polygon
+```{r checkTrainingData}
+checkTrainingData <- function(path) {
+ library(sf)
+ trainingData <- read_sf(path)
+  
+ 
+ #Checking the geometry
+ geometry <- trainingData$geom
+ if(is.null(geometry)){
+   geometry <- trainingData$geometry
+ }
+ if(class(geometry)[1] != "sfc_POLYGON"){
+   #error Code 3: The training data have no column with the value "Label"
+   return(3)
+ }
+ 
+ 
+ 
+ #Checking the Label
+ labels <- trainingData$Label
+ if(is.null(labels)){
+   # Errir code 1: The training data have no column with the value "Label"
+   return(1)
+ }
+ has_NA <- any(is.na(labels))
+ if(has_NA){
+   # Error code 2: The geometry of the object is not Polygon
+   return(2)
+ }
+ return(0) #Training Data are valid
+}
+```
