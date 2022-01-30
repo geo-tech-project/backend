@@ -324,7 +324,7 @@ function deleteFiles(dirPath, fileName) {
     });
 }
 
-app.use('/documentation', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
+app.use('/api', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
 
 
 app.listen(PORT, () => {
