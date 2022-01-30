@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # checkTrainingData(path)
-This function is validating the incoming training data for their usability to train the model.
-The function returning status codes which indicating if they data are valid, and if not why their are not valid:
+This function validates the incoming training data for their usability to train the model.
+The function returns status codes indicating whether the data is valid or not. If the data is not valid, it explains why it is not.
 **paramters:** \
 **path:** The path to the file where the training data are stored. \
 **return:** An status code: \
@@ -37,7 +37,7 @@ checkTrainingData <- function(path) {
  
  
  
- #Checking the Label
+ #Checking the label
  labels <- trainingData$Label
  if(is.null(labels)){
    # Errir code 1: The training data have no column with the value "Label"
