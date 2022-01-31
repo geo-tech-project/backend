@@ -29,11 +29,12 @@
 # -Trained model as .rds file
 
 # setwd("~/Documents/Studium/5. Semester/Geosoftware_II/geo-tech-project/backend")
-# algorithm = 'svmRadial'
+# algorithm = 'rf'
 # trainingDataPath = './public/uploads/trainingsdaten_muenster_32632.gpkg'
-# hyperparameter = c(2)
+# hyperparameter = c(7)
 # hyperparameter = c(1, 1)
 # desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
+# additionalIndices = c("NDVI", "NDVI_SD_3x3", "NDVI_SD_5x5", "BSI", "BAEI")
 
 
 training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands, additionalIndices) {
@@ -91,7 +92,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands, 
   extr <- merge(extr_pixel, trainSites, by.x="ID", by.y="PolygonID")
   
   # set predictor attributes
-  predictors <- names(stack)
+  predictors <- names(stack) 
 
   # set response attribute
   response <- "Label"
@@ -173,7 +174,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands, 
 # -AOA
 # -Recommended training locations
 
-modelPath = "R/model/model.RDS"
+# modelPath = "R/model/model.RDS"
 # desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
 
 classifyAndAOA <- function(modelPath, desiredBands, additionalIndices) {
@@ -237,11 +238,11 @@ classifyAndAOA <- function(modelPath, desiredBands, additionalIndices) {
   writeRaster(prediction, "R/prediction_and_aoa/prediction.tif", overwrite = TRUE)
   
   # initiate parallel computing
-  cl <- makeCluster(6)
+  cl <- makeCluster(4)
   registerDoParallel(cl)
 
   # calculate AOA for the model prediction
-  AOA <- aoa(stack,model,cl=cl)
+  AOA <- aoa(stack, model, cl=cl)
 
   # write AOA raster to tif in file directory
   writeRaster(AOA$AOA, "R/prediction_and_aoa/aoa.tif", overwrite=TRUE)

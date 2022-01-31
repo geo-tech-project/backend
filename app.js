@@ -219,8 +219,7 @@ app.get('/marker', (req, res, next) => {
 
 // route to upload file only for multer
 app.post('/upload', upload.single('file'), async function (req, res) {
-    console.log(req.route)
-    console.log(req.file)
+    
     let filename = req.file.filename
     let extension = filename.split('.').pop()
 
@@ -243,6 +242,7 @@ app.post('/upload', upload.single('file'), async function (req, res) {
         let path = "./public/uploads/" + req.file.originalname;
         let valid = await validateTrainingData(path);
         if (valid.status === "error") {
+            console.log("Invalid training data uploaded")
             await deleteFiles(__dirname + "/public/uploads", "dummy");
             res.status(401).send({
                 status: "error",
