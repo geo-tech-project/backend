@@ -184,7 +184,7 @@ pre code {
 <strong>hyperparameter</strong> (Number[]) Array with the hyperparameter for the wanted algorithm<br />
 <strong>desiredBands</strong> (String[]) Array with the desired bands from the sentinel<br />
 <strong>returns:</strong> See return codes</p>
-<pre class="r"><code>training &lt;- function(algorithm, trainingDataPath, hyperparameter, desiredBands) {
+<pre class="r"><code>training &lt;- function(algorithm, trainingDataPath, hyperparameter, desiredBands, additionalIndices) {
 
   # load packages
   library(raster)
@@ -205,6 +205,28 @@ pre code {
 
   # drop the SCL band
   stack &lt;- dropLayer(stack, length(names(stack)))
+
+  # create additionalIndices bands
+  if (length(additionalIndices) &gt; 0) {
+    if (&#39;NDVI&#39; %in% additionalIndices) {
+      stack$NDVI &lt;- (stack$B08-stack$B04)/(stack$B08+stack$B04)
+    }
+    if (&#39;NDVI_SD_3x3&#39; %in% additionalIndices) {
+      stack$NDVI_SD_3x3 &lt;- focal(stack$NDVI,w=matrix(1/9, nc=3, nr=3), fun=sd, na.rm=TRUE)
+    }
+    if (&#39;NDVI_SD_5x5&#39; %in% additionalIndices) {
+      stack$NDVI_SD_5x5 &lt;- focal(stack$NDVI,w=matrix(1/25, nc=5, nr=5), fun=sd, na.rm=TRUE)
+    }
+    if (&#39;BSI&#39; %in% additionalIndices) {
+      stack$BSI &lt;- ( (stack$B11 + stack$B04) - (stack$B08 + stack$B02) ) / ( (stack$B11 + stack$B04) + (stack$B08 + stack$B02) )
+    }
+    if (&#39;BAEI&#39; %in% additionalIndices) {
+      stack$BAEI &lt;- (stack$B04 + 0.3) / (stack$B03 + stack$B11)
+    }
+    
+    writeRaster(stack, &quot;R/processed_sentinel_images/trainingData.tif&quot;, overwrite = TRUE)
+  }
+  
   
   # load training data
   trainSites &lt;- read_sf(trainingDataPath)
@@ -222,7 +244,7 @@ pre code {
   extr &lt;- merge(extr_pixel, trainSites, by.x=&quot;ID&quot;, by.y=&quot;PolygonID&quot;)
   
   # set predictor attributes
-  predictors &lt;- names(stack)
+  predictors &lt;- names(stack) 
 
   # set response attribute
   response &lt;- &quot;Label&quot;
@@ -303,7 +325,7 @@ pre code {
 <strong>modelPath</strong> (String) relative filepath of the model to be used<br />
 <strong>desiredBands</strong> (String[]) Array with the desired bands from the sentinel<br />
 <strong>returns:</strong> See return codes</p>
-<pre class="r"><code>classifyAndAOA &lt;- function(modelPath, desiredBands) {
+<pre class="r"><code>classifyAndAOA &lt;- function(modelPath, desiredBands, additionalIndices) {
 
   # load packages
   library(raster)
@@ -326,9 +348,34 @@ pre code {
   }
 
   # load raster stack from data directory
-  stack &lt;- stack(&quot;R/processed_sentinel_images/aoi.tif&quot;)
+  stack &lt;- stack(&quot;./R/processed_sentinel_images/aoi.tif&quot;)
+
+  # name the stack bands
   names(stack) &lt;- desiredBands
+
+  # drop the SCL band
   stack &lt;- dropLayer(stack, length(names(stack)))
+
+  # create additionalIndices bands
+  if (length(additionalIndices) &gt; 0) {
+    if (&#39;NDVI&#39; %in% additionalIndices) {
+      stack$NDVI &lt;- (stack$B08-stack$B04)/(stack$B08+stack$B04)
+    }
+    if (&#39;NDVI_SD_3x3&#39; %in% additionalIndices) {
+      stack$NDVI_SD_3x3 &lt;- focal(stack$NDVI,w=matrix(1/9, nc=3, nr=3), fun=sd, na.rm=TRUE)
+    }
+    if (&#39;NDVI_SD_5x5&#39; %in% additionalIndices) {
+      stack$NDVI_SD_5x5 &lt;- focal(stack$NDVI,w=matrix(1/25, nc=5, nr=5), fun=sd, na.rm=TRUE)
+    }
+    if (&#39;BSI&#39; %in% additionalIndices) {
+      stack$BSI &lt;- ( (stack$B11 + stack$B04) - (stack$B08 + stack$B02) ) / ( (stack$B11 + stack$B04) + (stack$B08 + stack$B02) )
+    }
+    if (&#39;BAEI&#39; %in% additionalIndices) {
+      stack$BAEI &lt;- (stack$B04 + 0.3) / (stack$B03 + stack$B11)
+    }
+    
+    writeRaster(stack, &quot;R/processed_sentinel_images/aoi.tif&quot;, overwrite = TRUE)
+  }
 
   # load model from data directory
   model &lt;- readRDS(modelPath)
@@ -343,11 +390,11 @@ pre code {
   writeRaster(prediction, &quot;R/prediction_and_aoa/prediction.tif&quot;, overwrite = TRUE)
   
   # initiate parallel computing
-  cl &lt;- makeCluster(6)
+  cl &lt;- makeCluster(4)
   registerDoParallel(cl)
 
   # calculate AOA for the model prediction
-  AOA &lt;- aoa(stack,model,cl=cl)
+  AOA &lt;- aoa(stack, model, cl=cl)
 
   # write AOA raster to tif in file directory
   writeRaster(AOA$AOA, &quot;R/prediction_and_aoa/aoa.tif&quot;, overwrite=TRUE)
