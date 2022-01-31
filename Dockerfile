@@ -30,6 +30,9 @@ RUN R -e "install.packages('rstac', dependencies=TRUE, repos='https://cran.uni-m
 RUN R -e "install.packages('gdalcubes', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('raster', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('caret', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
+# RUN R -e "install.packages('remotes', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
+# RUN R -e "library(remotes)"
+# RUN R -e "install_github('HannaMeyer/CAST')"
 RUN R -e "install.packages('CAST', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('lattice', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('Orcs', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
@@ -42,6 +45,7 @@ RUN R -e "install.packages('sp', dependencies=TRUE, repos='https://cran.uni-muen
 RUN R -e "install.packages('geojson', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('rjson', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('randomForest', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
+RUN R -e "install.packages('kernlab', dependencies=TRUE, repos='https://cran.uni-muenster.de/')"
 
 # Get all the code needed to run the app
 COPY . .
