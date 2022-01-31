@@ -60,7 +60,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands, 
   stack <- dropLayer(stack, length(names(stack)))
 
   # create additionalIndices bands
-  if (length(additionalIndices) > 0) {
+  if (length(additionalIndices) > 1) {
     if ('NDVI' %in% additionalIndices) {
       stack$NDVI <- (stack$B08-stack$B04)/(stack$B08+stack$B04)
     }

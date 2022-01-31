@@ -113,6 +113,7 @@ function processInputData(data) {
             out.hyperparameter = [data.sigma, data.cost]
         }
     }
+    out.additionalIndices.push('')
     return out;
 }
 
