@@ -290,7 +290,7 @@ classifyAndAOA <- function(modelPath, desiredBands, additionalIndices) {
   return(0)
 }
 
-
+# Function checks if the predictors in the model are available as bands in the stack
 checkPredictors <- function(model, stack) {
   if (model$method == 'rf') {
     predictors <- model$finalModel$xNames
