@@ -219,15 +219,26 @@ app.get('/marker', (req, res, next) => {
 
 // route to upload file only for multer
 app.post('/upload', upload.single('file'), async function (req, res) {
+    console.log(req.route)
+    console.log(req.file)
+    let filename = req.file.filename
+    let extension = filename.split('.').pop()
+
     if (!req.file) {
         console.log("No file is available!");
         return res.send({
             success: false
         });
 
-    } else {
+    } else if (filename.split('.').pop() === 'RDS'){
         console.log('File is available!');
-        console.log(req.file.originalname)
+        console.log(filename)
+        return res.send({
+            success: true
+        })
+    } else if (extension === 'geojson' || extension === 'gpkg') {
+        console.log('File is available!');
+        console.log(filename)
 
         let path = "./public/uploads/" + req.file.originalname;
         let valid = await validateTrainingData(path);
