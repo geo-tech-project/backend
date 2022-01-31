@@ -29,14 +29,15 @@
 # -Trained model as .rds file
 
 # setwd("~/Documents/Studium/5. Semester/Geosoftware_II/geo-tech-project/backend")
-# algorithm = 'svmRadial'
+# algorithm = 'rf'
 # trainingDataPath = './public/uploads/trainingsdaten_muenster_32632.gpkg'
-# hyperparameter = c(2)
+# hyperparameter = c(7)
 # hyperparameter = c(1, 1)
 # desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
+# additionalIndices = c("NDVI", "NDVI_SD_3x3", "NDVI_SD_5x5", "BSI", "BAEI")
 
 
-training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) {
+training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands, additionalIndices) {
 
   # load packages
   library(raster)
@@ -57,6 +58,28 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 
   # drop the SCL band
   stack <- dropLayer(stack, length(names(stack)))
+
+  # create additionalIndices bands
+  if (length(additionalIndices) > 0) {
+    if ('NDVI' %in% additionalIndices) {
+      stack$NDVI <- (stack$B08-stack$B04)/(stack$B08+stack$B04)
+    }
+    if ('NDVI_SD_3x3' %in% additionalIndices) {
+      stack$NDVI_SD_3x3 <- focal(stack$NDVI,w=matrix(1/9, nc=3, nr=3), fun=sd, na.rm=TRUE)
+    }
+    if ('NDVI_SD_5x5' %in% additionalIndices) {
+      stack$NDVI_SD_5x5 <- focal(stack$NDVI,w=matrix(1/25, nc=5, nr=5), fun=sd, na.rm=TRUE)
+    }
+    if ('BSI' %in% additionalIndices) {
+      stack$BSI <- ( (stack$B11 + stack$B04) - (stack$B08 + stack$B02) ) / ( (stack$B11 + stack$B04) + (stack$B08 + stack$B02) )
+    }
+    if ('BAEI' %in% additionalIndices) {
+      stack$BAEI <- (stack$B04 + 0.3) / (stack$B03 + stack$B11)
+    }
+    
+    writeRaster(stack, "R/processed_sentinel_images/trainingData.tif", overwrite = TRUE)
+  }
+  
   
   # load training data
   trainSites <- read_sf(trainingDataPath)
@@ -74,7 +97,7 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
   extr <- merge(extr_pixel, trainSites, by.x="ID", by.y="PolygonID")
   
   # set predictor attributes
-  predictors <- names(stack)
+  predictors <- names(stack) 
 
   # set response attribute
   response <- "Label"
@@ -156,10 +179,10 @@ training <- function(algorithm, trainingDataPath, hyperparameter, desiredBands) 
 # -AOA
 # -Recommended training locations
 
-modelPath = "R/model/model.RDS"
+# modelPath = "R/model/model.RDS"
 # desiredBands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12", "SCL")
 
-classifyAndAOA <- function(modelPath, desiredBands) {
+classifyAndAOA <- function(modelPath, desiredBands, additionalIndices) {
 
   # load packages
   library(raster)
@@ -183,8 +206,33 @@ classifyAndAOA <- function(modelPath, desiredBands) {
 
   # load raster stack from data directory
   stack <- stack("./R/processed_sentinel_images/aoi.tif")
+
+  # name the stack bands
   names(stack) <- desiredBands
+
+  # drop the SCL band
   stack <- dropLayer(stack, length(names(stack)))
+
+  # create additionalIndices bands
+  if (length(additionalIndices) > 0) {
+    if ('NDVI' %in% additionalIndices) {
+      stack$NDVI <- (stack$B08-stack$B04)/(stack$B08+stack$B04)
+    }
+    if ('NDVI_SD_3x3' %in% additionalIndices) {
+      stack$NDVI_SD_3x3 <- focal(stack$NDVI,w=matrix(1/9, nc=3, nr=3), fun=sd, na.rm=TRUE)
+    }
+    if ('NDVI_SD_5x5' %in% additionalIndices) {
+      stack$NDVI_SD_5x5 <- focal(stack$NDVI,w=matrix(1/25, nc=5, nr=5), fun=sd, na.rm=TRUE)
+    }
+    if ('BSI' %in% additionalIndices) {
+      stack$BSI <- ( (stack$B11 + stack$B04) - (stack$B08 + stack$B02) ) / ( (stack$B11 + stack$B04) + (stack$B08 + stack$B02) )
+    }
+    if ('BAEI' %in% additionalIndices) {
+      stack$BAEI <- (stack$B04 + 0.3) / (stack$B03 + stack$B11)
+    }
+    
+    writeRaster(stack, "R/processed_sentinel_images/aoi.tif", overwrite = TRUE)
+  }
 
   # load model from data directory
   model <- readRDS(modelPath)
@@ -199,11 +247,11 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   writeRaster(prediction, "R/prediction_and_aoa/prediction.tif", overwrite = TRUE)
   
   # initiate parallel computing
-  cl <- makeCluster(6)
+  cl <- makeCluster(4)
   registerDoParallel(cl)
 
   # calculate AOA for the model prediction
-  AOA <- aoa(stack,model,cl=cl)
+  AOA <- aoa(stack, model, cl=cl)
 
   # write AOA raster to tif in file directory
   writeRaster(AOA$AOA, "R/prediction_and_aoa/aoa.tif", overwrite=TRUE)
@@ -242,7 +290,7 @@ classifyAndAOA <- function(modelPath, desiredBands) {
   return(0)
 }
 
-
+# Function checks if the predictors in the model are available as bands in the stack
 checkPredictors <- function(model, stack) {
   if (model$method == 'rf') {
     predictors <- model$finalModel$xNames

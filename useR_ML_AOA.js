@@ -21,12 +21,12 @@ const rFilePath = './R/ML_AOA.R';
  * the Array. Required is the 'SCL' which was used for filtering the clouds before.
  * @returns the result of the R-Skript. Either error object or String that confirms the successfull calculations.
  */
-async function calculateAOAwithGivenModel(modelPath, desiredBands) {
+async function calculateAOAwithGivenModel(modelPath, desiredBands, additionalIndices) {
 
     let output = {};
     output.training = ["3"]
     try {
-        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", { modelPath: modelPath, desiredBands: desiredBands })
+        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", { modelPath: modelPath, desiredBands: desiredBands, additionalIndices: additionalIndices })
     } catch (error) {
         output.classifyAndAOA = ["2"]
     }
@@ -47,12 +47,12 @@ async function calculateAOAwithGivenModel(modelPath, desiredBands) {
  * the Array. Required is the 'SCL' which was used for filtering the clouds before.
  * @returns 
  */
-async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands) {
+async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparameter, desiredBands, additionalIndices) {
 
     let output = {}
 
     try {
-        output.training = await R.callMethodAsync(rFilePath, "training", { algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands: desiredBands })
+        output.training = await R.callMethodAsync(rFilePath, "training", { algorithm: algorithm, trainingDataPath: trainingDataPath, hyperparameter: hyperparameter, desiredBands: desiredBands, additionalIndices: additionalIndices })
     } catch (error) {
         output.training = ["2"]
         output.classifyAndAOA = ["3"]
@@ -60,7 +60,7 @@ async function calculateNewModelAndAOA(algorithm, trainingDataPath, hyperparamet
     }
 
     try {
-        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", { modelPath: "R/model/model.RDS", desiredBands: desiredBands })
+        output.classifyAndAOA = await R.callMethodAsync(rFilePath, "classifyAndAOA", { modelPath: "R/model/model.RDS", desiredBands: desiredBands, additionalIndices: additionalIndices })
     } catch (error) {
         output.classifyAndAOA = ["2"]
     }
@@ -101,7 +101,8 @@ function processInputData(data) {
     var out = {
         option: data.option,
         filePath: './public/uploads/' + data.filename,
-        desiredBands: data.channels
+        desiredBands: data.channels,
+        additionalIndices: data.additionalIndices
     }
     if (data.option == 'data') {
         if (data.algorithm == "rf") {
@@ -150,7 +151,7 @@ async function calculateAOA(data) {
     let output = {}
     if (processedData.option == 'data') {
 
-        output = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands)
+        output = await calculateNewModelAndAOA(processedData.algorithm, processedData.filePath, processedData.hyperparameter, processedData.desiredBands, processedData.additionalIndices)
 
         if (output.training[0] === "0" && output.classifyAndAOA[0] === '0') {
             output.training = {
@@ -197,7 +198,7 @@ async function calculateAOA(data) {
 
     } else if (processedData.option == 'model') {
 
-        output = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands)
+        output = await calculateAOAwithGivenModel(processedData.filePath, processedData.desiredBands, processedData.additionalIndices)
 
         if (output.training[0] === '3' && output.classifyAndAOA[0] === '0') {
             output.training = {
